@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meechto — Premium Job Portal</title>
+  <meta name="description" content="Meechto Job Portal with HR auth, job postings, search & applications." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      /* Enhanced color system */
+      --brand: #10b981;           /* primary */
+      --brand-light: #34d399;     /* lighter brand */
+      --brand-dark: #059669;      /* darker brand */
+      --accent: #f59e0b;          /* accent (limited use) */
+      --accent-light: #fbbf24;    /* lighter accent */
+      --bg: #0f172a;              /* background - deeper blue */
+      --bg-light: #1e293b;        /* lighter background */
+      --card: #1e293b;            /* cards */
+      --card-light: #334155;      /* lighter cards */
+      --muted: #94a3b8;           /* text muted */
+      --fg: #f1f5f9;              /* text primary */
+      --fg-dark: #cbd5e1;         /* darker text */
+      --border: #334155;          /* subtle borders */
+      --success: #10b981;         /* success color */
+      --warning: #f59e0b;         /* warning color */
+      --error: #ef4444;           /* error color */
+
+      --radius: 16px;             /* increased border radius */
+      --radius-sm: 8px;           /* small radius */
+      --shadow: 0 20px 40px rgba(0,0,0,0.35);
+      --shadow-soft: 0 10px 25px rgba(0,0,0,0.25);
+      --focus-ring: 0 0 0 3px color-mix(in oklab, var(--brand) 40%, transparent);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif;
+      color:var(--fg);
+      background: radial-gradient(1200px 800px at 80% -10%, rgba(16,185,129,0.15), transparent),
+                  radial-gradient(1000px 700px at 0% 0%, rgba(245,158,11,0.08), transparent),
+                  var(--bg);
+      line-height:1.6;
+      overflow-x: hidden;
+    }
+    a{color:inherit;text-decoration:none}
+    img{max-width:100%;display:block}
+
+    /* Layout */
+    .shell{max-width:1200px;margin:0 auto;padding:24px}
+    header.nav{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter: blur(12px);
+      background: color-mix(in oklab, var(--bg) 80%, transparent);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .nav-inner{
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      padding:14px 0;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.2px;
+      font-size: 1.25rem;
+    }
+    .brand-logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .menu{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .btn, .chip{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid var(--border);
+      background: color-mix(in oklab, var(--card) 92%, transparent);
+      color: var(--fg);
+      padding:10px 18px;border-radius:var(--radius-sm);font-weight:600;cursor:pointer;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+    .btn:hover{transform:translateY(-2px);border-color:color-mix(in oklab, var(--brand) 35%, var(--border)); box-shadow: var(--shadow-soft);}
+    .btn.primary{
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-color:transparent;
+      color:white;
+      box-shadow: 0 4px 14px color-mix(in oklab, var(--brand) 40%, transparent);
+    }
+    .btn.primary:hover{transform:translateY(-2px); box-shadow: 0 6px 20px color-mix(in oklab, var(--brand) 50%, transparent);}
+    .btn.ghost{background:transparent; border-color: transparent;}
+    .btn.ghost:hover{background: color-mix(in oklab, var(--card) 50%, transparent);}
+    .chip{padding:8px 16px;font-weight:600; border-radius: 20px;}
+    .chip.active{
+      background: color-mix(in oklab, var(--brand) 20%, var(--card)); 
+      border-color: color-mix(in oklab, var(--brand) 45%, var(--border)); 
+      color: #c7fcea;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+
+    main{padding-top:24px}
+    .grid-2{display:grid;grid-template-columns: 1.1fr .9fr;gap:24px}
+    .stack{display:flex;flex-direction:column;gap:16px}
+
+    /* Cards */
+    .card{
+      background: color-mix(in oklab, var(--card) 96%, transparent);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      transition: var(--transition);
+      overflow: hidden;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow);
+      border-color: color-mix(in oklab, var(--brand) 20%, var(--border));
+    }
+    .card.pad{padding:24px}
+    .card-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .card-title h3 {font-weight: 700; font-size: 1.4rem;}
+    .subtle{color:var(--muted);font-size:14px}
+    .divider{height:1px;background:var(--border);margin:12px 0}
+
+    /* Search */
+    .searchbar{
+      display:flex;gap:12px;align-items:center;flex-wrap:wrap
+    }
+    .input{
+      flex:1;min-width:240px;
+      background: var(--bg-light);border:1px solid var(--border);color:var(--fg);
+      padding:14px 16px;border-radius:var(--radius-sm);outline:none;
+      transition: var(--transition);
+      font-size: 0.95rem;
+    }
+    .input:focus{
+      border-color: color-mix(in oklab, var(--brand) 45%, var(--border)); 
+      box-shadow: var(--focus-ring);
+      background: color-mix(in oklab, var(--bg-light) 90%, transparent);
+    }
+
+    /* Job list */
+    .jobs{display:grid;grid-template-columns: repeat(2, minmax(0, 1fr)); gap:20px}
+    .job{
+      display:flex; gap:16px; align-items:flex-start;
+      padding:20px; position:relative; overflow:hidden;
+      transform: translateY(10px); opacity:0; animation:fadeUp .6s ease forwards;
+    }
+    .job:hover{
+      border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+      transform: translateY(-5px);
+    }
+    .logo{
+      width:52px;height:52px;border-radius:12px;flex:0 0 52px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      display:grid;place-items:center;font-weight:800;color:white;letter-spacing:.3px;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .job h4{margin:4px 0 6px 0; font-size: 1.2rem; font-weight: 700;}
+    .meta{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px 0}
+    .badge{
+      font-size:12px;color:#d1d5db;background:#0d1318;border:1px solid var(--border);
+      border-radius:999px;padding:6px 12px;
+      transition: var(--transition);
+    }
+    .badge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .salary{color:#befae1;font-weight:700; background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 20px;}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+
+    /* Empty/section visibility */
+    [hidden]{display:none !important}
+
+    /* Sidebar dashboard (compact for mobile-first) */
+    .dash-menu{
+      display:flex;gap:12px;flex-wrap:wrap
+    }
+
+    /* Forms */
+    form .row-2{display:grid;grid-template-columns: 1fr 1fr; gap:16px}
+    label{display:block;font-size:14px;color:var(--muted);margin-bottom:8px; font-weight: 500;}
+    select, textarea{width:100%}
+    textarea{min-height:100px;resize:vertical; line-height: 1.5;}
+    .helper{font-size:12px;color:var(--muted)}
+
+    .stepper{display:flex;gap:12px;align-items:center;margin-bottom:16px}
+    .step{
+      width:32px;height:32px;border-radius:999px;display:grid;place-items:center;
+      background:var(--bg-light);border:1px solid var(--border);font-size:14px;color:var(--muted);
+      transition: var(--transition);
+    }
+    .step.active{
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark)); 
+      color:white;
+      border-color:transparent;
+      font-weight:800;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Applications table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
+    th{color:#cbd5e1;font-weight:700; background: var(--bg-light);}
+    tr:hover td{background:color-mix(in oklab, var(--bg-light) 90%, transparent);}
+
+    /* Dialogs */
+    .overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.7);
+      display:grid;place-items:center;padding:20px;z-index:60;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.3s ease;
+    }
+    .dialog{width:100%;max-width:540px; animation: scaleIn 0.3s ease;}
+    .dialog .card.pad{padding:24px;}
+
+    /* Toast */
+    .toast{
+      position:fixed;right:24px;bottom:24px;background:var(--card);
+      color:var(--fg);
+      border:1px solid color-mix(in oklab, var(--brand) 45%, var(--border));
+      padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);z-index:70;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s ease;
+    }
+    .toast i {font-size: 1.2rem;}
+
+    /* Animations */
+    @keyframes fadeIn{
+      from{opacity:0; }
+      to{opacity:1; }
+    }
+    @keyframes fadeUp{
+      from{opacity:0; transform: translateY(10px)}
+      to{opacity:1; transform: translateY(0)}
+    }
+    @keyframes scaleIn {
+      from {transform: scale(0.9); opacity: 0;}
+      to {transform: scale(1); opacity: 1;}
+    }
+    @keyframes slideIn {
+      from {transform: translateX(100px); opacity: 0;}
+      to {transform: translateX(0); opacity: 1;}
+    }
+    .fade-in{opacity:0;animation:fadeUp .5s ease forwards}
+
+    /* Pulse animation */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .pulse {animation: pulse 2s infinite;}
+
+    /* Responsive */
+    @media (max-width: 960px){
+      .grid-2{grid-template-columns: 1fr}
+      .jobs{grid-template-columns: 1fr}
+      .nav-inner{align-items:flex-start;gap:12px}
+    }
+    @media (max-width: 640px){
+      .shell {padding: 16px;}
+      .searchbar {flex-direction: column; align-items: stretch;}
+      .menu {gap: 8px;}
+      .btn, .chip {padding: 8px 12px; font-size: 0.85rem;}
+      form .row-2 {grid-template-columns: 1fr;}
+      .job {flex-direction: column; text-align: center;}
+      .logo {align-self: center;}
+      .row {justify-content: center;}
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-light);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--brand);
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="shell nav-inner" role="navigation" aria-label="Main">
+      <div class="brand">
+        <div class="brand-logo" aria-hidden="true">M</div>
+        <div>
+          <div>Meechto</div>
+          <div class="subtle" style="margin-top:-2px">Premium Job Portal</div>
+        </div>
+      </div>
+      <nav class="menu" aria-label="Menu">
+        <button class="btn ghost" id="btnHome">Home</button>
+        <button class="btn ghost" id="btnNewJob">New Job Post</button>
+        <button class="btn ghost" id="btnApplications">Applications</button>
+        <span class="subtle" id="welcomeUser" aria-live="polite"></span>
+        <button class="btn primary" id="btnLogin"><i class="fas fa-sign-in-alt"></i> HR Login</button>
+        <button class="btn" id="btnSignup">Sign Up</button>
+        <button class="btn" id="btnLogout" hidden><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+     Home / Jobs 
+    <section id="sectionHome" class="stack fade-in" style="animation-delay:.1s">
+      <div class="card pad">
+        <div class="card-title">
+          <h3 class="text-balance">Find Your Dream Job</h3>
+          <span class="subtle">Search from thousands of opportunities</span>
+        </div>
+        <div class="searchbar">
+          <input id="searchInput" class="input" type="search" placeholder="Search jobs e.g. Supervisor, React, Pune" aria-label="Search jobs" />
+          <div class="row" role="radiogroup" aria-label="Filter jobs by type">
+            <button class="chip active" data-filter="all" aria-pressed="true">All</button>
+            <button class="chip" data-filter="Full-Time" aria-pressed="false">Full-Time</button>
+            <button class="chip" data-filter="Part-Time" aria-pressed="false">Part-Time</button>
+            <button class="chip" data-filter="Contract" aria-pressed="false">Contract</button>
+            <button class="chip" data-filter="Internship" aria-pressed="false">Internship</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="jobs" id="jobsGrid" aria-live="polite"></div>
+    </section>
+
+     New Job Post 
+    <section id="sectionNewJob" class="stack fade-in" hidden style="animation-delay:.1s">
+      <div class="card pad">
+        <div class="card-title">
+          <h3><i class="fas fa-plus-circle"></i> New Job Post</h3>
+          <span class="subtle">Fill details in steps</span>
+        </div>
+
+        <div class="stepper">
+          <div class="step" data-step="1">1</div>
+          <div class="step" data-step="2">2</div>
+          <div class="step" data-step="3">3</div>
+        </div>
+
+        <form id="jobForm" novalidate>
+           Step 1: Job Details 
+          <div data-step-panel="1" class="stack">
+            <div class="row-2">
+              <div>
+                <label for="jobTitle"><i class="fas fa-tag"></i> Job Title</label>
+                <input id="jobTitle" class="input" required placeholder="HR, Supervisor, etc." />
+              </div>
+              <div>
+                <label for="openings"><i class="fas fa-users"></i> Number of Openings</label>
+                <input id="openings" class="input" type="number" min="1" required placeholder="e.g. 3" />
+              </div>
+              <div>
+                <label for="minSalary"><i class="fas fa-money-bill-wave"></i> Minimum Salary (₹)</label>
+                <input id="minSalary" class="input" type="number" min="0" required placeholder="e.g. 15000" />
+              </div>
+              <div>
+                <label for="maxSalary"><i class="fas fa-money-bill-wave"></i> Maximum Salary (₹)</label>
+                <input id="maxSalary" class="input" type="number" min="0" required placeholder="e.g. 25000" />
+              </div>
+              <div>
+                <label for="shifts"><i class="fas fa-clock"></i> Shifts</label>
+                <input id="shifts" class="input" required placeholder="Day/Night/Rotational" />
+              </div>
+              <div>
+                <label for="jobType"><i class="fas fa-briefcase"></i> Job Type</label>
+                <select id="jobType" class="input" required>
+                  <option value="">Select type</option>
+                  <option>Full-Time</option>
+                  <option>Part-Time</option>
+                  <option>Contract</option>
+                  <option>Internship</option>
+                </select>
+              </div>
+              <div>
+                <label for="facility"><i class="fas fa-building"></i> Facility</label>
+                <input id="facility" class="input" required placeholder="e.g. Pune Plant A" />
+              </div>
+              <div>
+                <label for="applicationCharges"><i class="fas fa-credit-card"></i> Application Charges</label>
+                <select id="applicationCharges" class="input" required>
+                  <option value="">Select</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+           Step 2: Candidate Requirement 
+          <div data-step-panel="2" class="stack" hidden>
+            <div class="row-2">
+              <div>
+                <label for="education"><i class="fas fa-graduation-cap"></i> Minimum Education</label>
+                <input id="education" class="input" required placeholder="e.g. BSc, 12th Pass" />
+              </div>
+              <div>
+                <label for="courseName"><i class="fas fa-book"></i> Course Name (Optional)</label>
+                <input id="courseName" class="input" placeholder="e.g. BSc in Chemistry" />
+              </div>
+              <div>
+                <label for="experience"><i class="fas fa-chart-line"></i> Experience</label>
+                <input id="experience" class="input" required placeholder="e.g. 1-3 years" />
+              </div>
+              <div>
+                <label for="gender"><i class="fas fa-venus-mars"></i> Gender</label>
+                <select id="gender" class="input" required>
+                  <option value="">Any</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Any</option>
+                </select>
+              </div>
+              <div>
+                <label for="callNumber"><i class="fas fa-phone"></i> Manage via Calling Number</label>
+                <input id="callNumber" class="input" type="tel" required placeholder="e.g. +91 9876543210" />
+              </div>
+              <div>
+                <label for="whatsApp"><i class="fab fa-whatsapp"></i> WhatsApp Number</label>
+                <input id="whatsApp" class="input" type="tel" required placeholder="e.g. +91 9876543210" />
+              </div>
+              <div>
+                <label for="hrEmail"><i class="fas fa-envelope"></i> Email</label>
+                <input id="hrEmail" class="input" type="email" required placeholder="e.g. hr@company.com" />
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:28px">
+                <input id="terms" type="checkbox" aria-label="Agree to Terms and Conditions" />
+                <span class="helper">I agree to the Terms & Conditions</span>
+              </div>
+            </div>
+          </div>
+
+           Step 3: Company Details 
+          <div data-step-panel="3" class="stack" hidden>
+            <div>
+              <label><i class="fas fa-industry"></i> Select your company type</label>
+              <div class="row" role="radiogroup" aria-label="Company Type">
+                <label class="chip"><input type="radio" name="companyType" value="Company" checked /> Company</label>
+                <label class="chip"><input type="radio" name="companyType" value="Consultancy" /> Consultancy</label>
+                <label class="chip"><input type="radio" name="companyType" value="Manpower Firm" /> Manpower Firm</label>
+                <label class="chip"><input type="radio" name="companyType" value="Vendor" /> Vendor</label>
+              </div>
+            </div>
+            <div class="row-2">
+              <div>
+                <label for="companyName"><i class="fas fa-building"></i> Company Name</label>
+                <input id="companyName" class="input" required />
+              </div>
+              <div>
+                <label for="companyAddress"><i class="fas fa-map-marker-alt"></i> Company Address</label>
+                <input id="companyAddress" class="input" required />
+              </div>
+              <div>
+                <label for="companySize"><i class="fas fa-chart-pie"></i> Company Size</label>
+                <input id="companySize" class="input" required placeholder="e.g. 50-200" />
+              </div>
+              <div>
+                <label for="busRoute"><i class="fas fa-bus"></i> Bus Route (Optional)</label>
+                <input id="busRoute" class="input" placeholder="e.g. Bhosari, Chakan, Moshi" />
+              </div>
+              <div>
+                <label for="area"><i class="fas fa-map"></i> Area</label>
+                <select id="area" class="input" required>
+                  <option value="">Select area</option>
+                  <option>Pune</option>
+                  <option>Mumbai</option>
+                  <option>Nashik</option>
+                  <option>Nagpur</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label for="village"><i class="fas fa-home"></i> Village Name</label>
+                <input id="village" class="input" placeholder="e.g. Alandi, Chakan, Moshi" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="justify-content:space-between;margin-top:10px">
+            <button type="button" class="btn" id="btnPrev"><i class="fas fa-arrow-left"></i> Back</button>
+            <div class="row">
+              <button type="button" class="btn" id="btnNext">Next <i class="fas fa-arrow-right"></i></button>
+              <button type="submit" class="btn primary" id="btnSubmit" hidden><i class="fas fa-check"></i> Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+     Applications 
+    <section id="sectionApplications" class="stack fade-in" hidden style="animation-delay:.1s">
+      <div class="card pad">
+        <div class="card-title">
+          <h3><i class="fas fa-file-alt"></i> Applications</h3>
+          <span class="subtle">All candidate applications</span>
+        </div>
+        <div class="divider"></div>
+        <div class="stack">
+          <div class="card pad" style="overflow:auto">
+            <table aria-describedby="applicationsDesc">
+              <caption id="applicationsDesc" class="sr-only">Candidate applications table</caption>
+              <thead>
+                <tr>
+                  <th>Job Title</th>
+                  <th>Candidate</th>
+                  <th>Contact</th>
+                  <th>Message</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="applicationsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+   Apply Dialog 
+  <div class="overlay" id="applyOverlay" hidden>
+    <div class="dialog card pad">
+      <div class="card-title">
+        <h4><i class="fas fa-edit"></i> Apply to Job</h4>
+        <button class="btn" id="closeApply"><i class="fas fa-times"></i> Close</button>
+      </div>
+      <form id="applyForm" novalidate>
+        <input type="hidden" id="applyJobId" />
+        <div class="row-2">
+          <div>
+            <label for="candName"><i class="fas fa-user"></i> Full Name</label>
+            <input id="candName" class="input" required />
+          </div>
+          <div>
+            <label for="candEmail"><i class="fas fa-envelope"></i> Email</label>
+            <input id="candEmail" class="input" type="email" required />
+          </div>
+          <div>
+            <label for="candPhone"><i class="fas fa-phone"></i> Phone</label>
+            <input id="candPhone" class="input" type="tel" required />
+          </div>
+          <div>
+            <label for="candResume"><i class="fas fa-file-pdf"></i> Resume Link (Optional)</label>
+            <input id="candResume" class="input" type="url" placeholder="https://…" />
+          </div>
+          <div style="grid-column: 1 / -1">
+            <label for="candMessage"><i class="fas fa-comment"></i> Message</label>
+            <textarea id="candMessage" class="input" placeholder="Brief note to HR"></textarea>
+          </div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:10px">
+          <button type="submit" class="btn primary"><i class="fas fa-paper-plane"></i> Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+   Auth Dialogs 
+  <div class="overlay" id="loginOverlay" hidden>
+    <div class="dialog card pad">
+      <div class="card-title">
+        <h4><i class="fas fa-sign-in-alt"></i> HR Login</h4>
+        <button class="btn" id="closeLogin"><i class="fas fa-times"></i> Close</button>
+      </div>
+      <form id="loginForm" novalidate>
+        <div class="stack">
+          <div>
+            <label for="loginUsername"><i class="fas fa-user"></i> Username</label>
+            <input id="loginUsername" class="input" required />
+          </div>
+          <div>
+            <label for="loginPassword"><i class="fas fa-lock"></i> Password</label>
+            <input id="loginPassword" class="input" type="password" required />
+          </div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <button type="button" class="btn" id="gotoSignup">Create Account</button>
+          <button type="submit" class="btn primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="overlay" id="signupOverlay" hidden>
+    <div class="dialog card pad">
+      <div class="card-title">
+        <h4><i class="fas fa-user-plus"></i> HR Registration</h4>
+        <button class="btn" id="closeSignup"><i class="fas fa-times"></i> Close</button>
+      </div>
+      <form id="signupForm" novalidate>
+        <div class="row-2">
+          <div>
+            <label for="fullName"><i class="fas fa-user"></i> Full Name</label>
+            <input id="fullName" class="input" required />
+          </div>
+          <div>
+            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+            <input id="email" type="email" class="input" required />
+          </div>
+          <div>
+            <label for="mobile"><i class="fas fa-phone"></i> Mobile Number</label>
+            <input id="mobile" class="input" type="tel" required />
+          </div>
+          <div>
+            <label for="username"><i class="fas fa-at"></i> Username</label>
+            <input id="username" class="input" required />
+          </div>
+          <div>
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <input id="password" class="input" type="password" required minlength="6" />
+          </div>
+          <div>
+            <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
+            <input id="confirmPassword" class="input" type="password" required minlength="6" />
+          </div>
+          <div>
+            <label for="position"><i class="fas fa-briefcase"></i> Position</label>
+            <select id="position" class="input" required>
+              <option value="">Select</option>
+              <option>HR</option>
+              <option>Contractor</option>
+            </select>
+          </div>
+          <div>
+            <label for="company"><i class="fas fa-building"></i> Company Name</label>
+            <input id="company" class="input" required />
+          </div>
+          <div style="grid-column: 1 / -1">
+            <label for="companyAddressReg"><i class="fas fa-map-marker-alt"></i> Company Address</label>
+            <input id="companyAddressReg" class="input" required />
+          </div>
+        </div>
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <button type="button" class="btn" id="gotoLogin">Already have account</button>
+          <button type="submit" class="btn primary">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+   Toast 
+  <div class="toast" id="toast" hidden role="status" aria-live="polite">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage"></span>
+  </div>
+
+  <script>
+    // Utilities
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const show = (el) => el.hidden = false;
+    const hide = (el) => el.hidden = true;
+    const toast = (msg, type = 'success') => {
+      const t = $('#toast'); 
+      const icon = $('#toast').querySelector('i');
+      const message = $('#toastMessage');
+      
+      // Set icon based on type
+      if (type === 'error') {
+        icon.className = 'fas fa-exclamation-circle';
+        t.style.borderColor = 'var(--error)';
+      } else if (type === 'warning') {
+        icon.className = 'fas fa-exclamation-triangle';
+        t.style.borderColor = 'var(--warning)';
+      } else {
+        icon.className = 'fas fa-check-circle';
+        t.style.borderColor = 'color-mix(in oklab, var(--brand) 45%, var(--border))';
+      }
+      
+      message.textContent = msg; 
+      show(t);
+      clearTimeout(toast._t); 
+      toast._t = setTimeout(()=> hide(t), 3000);
+    };
+
+    // LocalStorage Helpers
+    const LS = {
+      read: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } },
+      write: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
+      push: (k, item) => { const arr = LS.read(k, []); arr.push(item); LS.write(k, arr); }
+    };
+
+    // Auth State
+    let currentUser = null;
+
+    function loadAuth() {
+      const users = LS.read('hrUsers', []);
+      const username = localStorage.getItem('currentHrUsername');
+      currentUser = users.find(u => u.username === username) || null;
+
+      const welcome = $('#welcomeUser');
+      const btnLogin = $('#btnLogin');
+      const btnSignup = $('#btnSignup');
+      const btnLogout = $('#btnLogout');
+
+      if (currentUser){
+        welcome.textContent = 'Signed in as ' + currentUser.username;
+        hide(btnLogin); hide(btnSignup); show(btnLogout);
+      } else {
+        welcome.textContent = '';
+        show(btnLogin); show(btnSignup); hide(btnLogout);
+      }
+
+      gateNav();
+    }
+
+    function gateNav(){
+      // Protect sections if not logged-in
+      const canPost = !!currentUser;
+      $('#btnNewJob').disabled = !canPost;
+      $('#btnApplications').disabled = !canPost;
+    }
+
+    // Seed Jobs (10)
+    function ensureSeedJobs(){
+      const jobs = LS.read('jobs', []);
+      if (jobs.length > 0) return;
+
+      const seed = [
+        { id: crypto.randomUUID(), title:'HR Executive', company:'TechCorp', min:18000, max:28000, type:'Full-Time', location:'Pune', tags:['HR','Excel','Recruitment'], phone:'+919876543210', whatsapp:'+919876543210', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Supervisor', company:'DesignStudio', min:20000, max:32000, type:'Full-Time', location:'Mumbai', tags:['Team Lead','Operations'], phone:'+919945112233', whatsapp:'+919945112233', owner:'seed' },
+        { id: crypto.randomUUID(), title:'React Developer', company:'CloudTech', min:45000, max:65000, type:'Contract', location:'Remote', tags:['React','JS','Frontend'], phone:'+919811112222', whatsapp:'+919811112222', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Data Analyst', company:'DataLabs', min:35000, max:50000, type:'Full-Time', location:'Pune', tags:['SQL','Dashboards'], phone:'+919833344455', whatsapp:'+919833344455', owner:'seed' },
+        { id: crypto.randomUUID(), title:'QA Tester', company:'InnovateCorp', min:25000, max:38000, type:'Full-Time', location:'Nashik', tags:['Testing','Automation'], phone:'+919899991111', whatsapp:'+919899991111', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Network Engineer', company:'InfraTech', min:38000, max:52000, type:'Full-Time', location:'Pune', tags:['Cisco','Routing'], phone:'+919833377744', whatsapp:'+919833377744', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Office Admin', company:'GrowthCo', min:18000, max:24000, type:'Part-Time', location:'Pune', tags:['Admin','MS Office'], phone:'+919800022233', whatsapp:'+919800022233', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Intern - Marketing', company:'AppWorks', min:8000, max:12000, type:'Internship', location:'Mumbai', tags:['Marketing','Social'], phone:'+919833300011', whatsapp:'+919833300011', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Security Officer', company:'SecureOps', min:16000, max:22000, type:'Full-Time', location:'Pune', tags:['Security','Night'], phone:'+919822255566', whatsapp:'+919822255566', owner:'seed' },
+        { id: crypto.randomUUID(), title:'Chemistry Lab Assistant', company:'BioChem Pvt', min:22000, max:30000, type:'Contract', location:'Pune', tags:['Chemistry','Lab'], phone:'+919811199988', whatsapp:'+919811199988', owner:'seed' },
+      ];
+      LS.write('jobs', seed);
+    }
+
+    // Rendering
+    function renderJobs(){
+      const grid = $('#jobsGrid');
+      const term = $('#searchInput').value.trim().toLowerCase();
+      const activeFilter = $('.chip.active')?.dataset.filter || 'all';
+
+      const jobs = LS.read('jobs', []);
+      grid.innerHTML = '';
+
+      jobs
+        .filter(j=>{
+          const hit = (j.title + ' ' + j.company + ' ' + (j.tags||[]).join(' ')).toLowerCase().includes(term);
+          const typeOk = (activeFilter==='all' || j.type===activeFilter);
+          return hit && typeOk;
+        })
+        .forEach((job, idx)=>{
+          const el = document.createElement('article');
+          el.className = 'card job';
+          el.style.animationDelay = (idx * 40)+'ms';
+          el.setAttribute('aria-label', job.title + ' at ' + job.company);
+          el.innerHTML = `
+            <div class="logo" aria-hidden="true">${job.company.substring(0,2).toUpperCase()}</div>
+            <div style="flex:1">
+              <h4>${job.title} <span class="badge" title="Job Type">${job.type}</span></h4>
+              <div class="subtle">${job.company} • ${job.location}</div>
+              <div class="meta">
+                <span class="salary">₹${job.min.toLocaleString()} - ₹${job.max.toLocaleString()}</span>
+                ${(job.tags||[]).map(t=>`<span class="badge">${t}</span>`).join('')}
+              </div>
+              <div class="row">
+                <a class="btn" href="tel:${job.phone}" aria-label="Call HR"><i class="fas fa-phone"></i> Call</a>
+                <a class="btn" target="_blank" rel="noopener" href="https://wa.me/${job.whatsapp.replace(/[^0-9]/g,'')}" aria-label="WhatsApp HR"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                <button class="btn primary" data-apply="${job.id}"><i class="fas fa-paper-plane"></i> Apply</button>
+              </div>
+            </div>
+          `;
+          grid.appendChild(el);
+        });
+
+      if (!grid.children.length){
+        const empty = document.createElement('div');
+        empty.className = 'card pad';
+        empty.innerHTML = `<div style="text-align:center;padding:20px"><i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;opacity:0.5"></i><p>No jobs match your search.</p></div>`;
+        grid.appendChild(empty);
+      }
+    }
+
+    function renderApplications(){
+      const body = $('#applicationsBody');
+      const apps = LS.read('applications', []);
+      const jobsById = Object.fromEntries(LS.read('jobs', []).map(j=>[j.id, j]));
+      body.innerHTML = '';
+      apps.forEach(app=>{
+        const job = jobsById[app.jobId];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${job? job.title : '—'}</td>
+          <td>${app.name}</td>
+          <td>
+            <div>${app.email}</div>
+            <div class="subtle">${app.phone}</div>
+          </td>
+          <td>${app.message || ''}</td>
+          <td>
+            <select data-app="${app.id}" class="input" style="padding:6px 8px">
+              <option ${app.status==='New'?'selected':''}>New</option>
+              <option ${app.status==='Reviewed'?'selected':''}>Reviewed</option>
+              <option ${app.status==='Shortlisted'?'selected':''}>Shortlisted</option>
+              <option ${app.status==='Rejected'?'selected':''}>Rejected</option>
+            </select>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+      if (!apps.length){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5" style="text-align:center;padding:20px" class="subtle"><i class="fas fa-inbox" style="font-size:1.5rem;margin-bottom:10px;display:block;opacity:0.5"></i>No applications yet.</td>`;
+        body.appendChild(tr);
+      }
+    }
+
+    // Navigation / Sections
+    function showSection(name){
+      const sections = ['Home','NewJob','Applications'];
+      sections.forEach(s => (s===name) ? show($('#section'+s)) : hide($('#section'+s)) );
+
+      // Stepper reset when entering NewJob
+      if (name==='NewJob'){ setStep(1); }
+    }
+
+    // Stepper
+    let currentStep = 1;
+    function setStep(n){
+      currentStep = Math.max(1, Math.min(3, n));
+      $$('.step').forEach(el => el.classList.toggle('active', Number(el.dataset.step)===currentStep));
+      $$('[data-step-panel]').forEach(p => p.hidden = Number(p.dataset.stepPanel)!==currentStep);
+      $('#btnPrev').disabled = currentStep===1;
+      $('#btnNext').hidden = currentStep===3;
+      $('#btnSubmit').hidden = currentStep!==3;
+    }
+
+    // Apply modal
+    function openApply(jobId){
+      $('#applyJobId').value = jobId;
+      show($('#applyOverlay'));
+    }
+
+    // Event Listeners
+    function bindEvents(){
+      // Menu
+      $('#btnHome').addEventListener('click', ()=> showSection('Home'));
+      $('#btnNewJob').addEventListener('click', ()=>{
+        if (!currentUser){ toast('Please login as HR to post jobs.', 'warning'); return openLogin(); }
+        showSection('NewJob');
+      });
+      $('#btnApplications').addEventListener('click', ()=>{
+        if (!currentUser){ toast('Please login as HR to view applications.', 'warning'); return openLogin(); }
+        showSection('Applications'); renderApplications();
+      });
+
+      // Auth actions
+      $('#btnLogin').addEventListener('click', openLogin);
+      $('#btnSignup').addEventListener('click', openSignup);
+      $('#btnLogout').addEventListener('click', ()=>{
+        localStorage.removeItem('currentHrUsername');
+        loadAuth();
+        toast('Logged out successfully');
+      });
+
+      // Search/filter
+      $('#searchInput').addEventListener('input', renderJobs);
+      $$('.chip').forEach(chip=>{
+        chip.addEventListener('click', ()=>{
+          $$('.chip').forEach(c=>{ c.classList.remove('active'); c.setAttribute('aria-pressed','false'); });
+          chip.classList.add('active'); chip.setAttribute('aria-pressed','true');
+          renderJobs();
+        });
+      });
+
+      // Grid Apply buttons (event delegation after render)
+      $('#jobsGrid').addEventListener('click', (e)=>{
+        const btn = e.target.closest('button[data-apply]');
+        if (btn){
+          openApply(btn.getAttribute('data-apply'));
+        }
+      });
+
+      // Apply modal close
+      $('#closeApply').addEventListener('click', ()=> hide($('#applyOverlay')));
+      $('#applyOverlay').addEventListener('click', (e)=>{ if (e.target.id==='applyOverlay') hide($('#applyOverlay')); });
+
+      // Apply form submit
+      $('#applyForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const jobId = $('#applyJobId').value;
+        const name = $('#candName').value.trim();
+        const email = $('#candEmail').value.trim();
+        const phone = $('#candPhone').value.trim();
+        const resume = $('#candResume').value.trim();
+        const message = $('#candMessage').value.trim();
+
+        if (!name || !email || !phone){ toast('Please fill required fields', 'error'); return; }
+
+        LS.push('applications', { id: crypto.randomUUID(), jobId, name, email, phone, resume, message, status:'New', createdAt: Date.now() });
+        hide($('#applyOverlay'));
+        toast('Application submitted successfully');
+      });
+
+      // Applications status change
+      $('#applicationsBody').addEventListener('change', (e)=>{
+        const sel = e.target.closest('select[data-app]'); if (!sel) return;
+        const id = sel.getAttribute('data-app');
+        const apps = LS.read('applications', []);
+        const idx = apps.findIndex(a=>a.id===id);
+        if (idx>-1){ apps[idx].status = sel.value; LS.write('applications', apps); toast('Status updated'); }
+      });
+
+      // Stepper
+      $('#btnPrev').addEventListener('click', ()=> setStep(currentStep-1));
+      $('#btnNext').addEventListener('click', ()=>{
+        if (!validateStep(currentStep)) return;
+        setStep(currentStep+1);
+      });
+
+      // Job form submit
+      $('#jobForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        if (!validateStep(3)) return;
+
+        const job = collectJobFromForm();
+        LS.push('jobs', job);
+        toast('Job posting saved successfully');
+        e.target.reset();
+        setStep(1);
+        showSection('Home');
+        renderJobs();
+      });
+
+      // Auth dialogs
+      $('#closeLogin').addEventListener('click', ()=> hide($('#loginOverlay')));
+      $('#closeSignup').addEventListener('click', ()=> hide($('#signupOverlay')));
+      $('#gotoSignup').addEventListener('click', ()=> { hide($('#loginOverlay')); openSignup(); });
+      $('#gotoLogin').addEventListener('click', ()=> { hide($('#signupOverlay')); openLogin(); });
+
+      // Login submit
+      $('#loginForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const u = $('#loginUsername').value.trim();
+        const p = $('#loginPassword').value;
+
+        const users = LS.read('hrUsers', []);
+        const user = users.find(x=> x.username===u && x.password===p);
+        if (!user){ toast('Invalid credentials', 'error'); return; }
+        localStorage.setItem('currentHrUsername', u);
+        hide($('#loginOverlay'));
+        loadAuth();
+        toast('Welcome, '+u);
+      });
+
+      // Signup submit
+      $('#signupForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const fullName = $('#fullName').value.trim();
+        const email = $('#email').value.trim();
+        const mobile = $('#mobile').value.trim();
+        const username = $('#username').value.trim();
+        const password = $('#password').value;
+        const confirmPassword = $('#confirmPassword').value;
+        const position = $('#position').value;
+        const company = $('#company').value.trim();
+        const companyAddress = $('#companyAddressReg').value.trim();
+
+        if (!fullName || !email || !mobile || !username || !password || !confirmPassword || !position || !company || !companyAddress){
+          toast('Please fill all required fields', 'error'); return;
+        }
+        if (password !== confirmPassword){ toast('Passwords do not match', 'error'); return; }
+
+        const users = LS.read('hrUsers', []);
+        if (users.some(u=>u.username===username)){ toast('Username already exists', 'error'); return; }
+
+        users.push({ fullName, email, mobile, username, password, position, company, companyAddress });
+        LS.write('hrUsers', users);
+
+        hide($('#signupOverlay'));
+        openLogin();
+        toast('Registration successful. Please login.');
+      });
+    }
+
+    function openLogin(){ show($('#loginOverlay')); }
+    function openSignup(){ show($('#signupOverlay')); }
+
+    function validateStep(step){
+      // Simple required check by step
+      const panel = document.querySelector('[data-step-panel="'+step+'"]');
+      const required = $$('input[required], select[required], textarea[required]', panel);
+      for (const el of required){
+        if ((el.type==='checkbox' && !el.checked) || (!el.value || el.value.trim()==='')){
+          el.focus(); el.scrollIntoView({behavior:'smooth', block:'center'});
+          toast('Please complete required fields', 'error');
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function collectJobFromForm(){
+      const step1 = {
+        title: $('#jobTitle').value.trim(),
+        openings: Number($('#openings').value),
+        min: Number($('#minSalary').value),
+        max: Number($('#maxSalary').value),
+        shifts: $('#shifts').value.trim(),
+        type: $('#jobType').value,
+        facility: $('#facility').value.trim(),
+        applicationCharges: $('#applicationCharges').value
+      };
+      const step2 = {
+        education: $('#education').value.trim(),
+        courseName: $('#courseName').value.trim(),
+        experience: $('#experience').value.trim(),
+        gender: $('#gender').value,
+        callNumber: $('#callNumber').value.trim(),
+        whatsApp: $('#whatsApp').value.trim(),
+        hrEmail: $('#hrEmail').value.trim()
+      };
+      const step3 = {
+        companyType: (document.querySelector('input[name="companyType"]:checked')||{}).value || 'Company',
+        companyName: $('#companyName').value.trim(),
+        companyAddress: $('#companyAddress').value.trim(),
+        companySize: $('#companySize').value.trim(),
+        busRoute: $('#busRoute').value.trim(),
+        area: $('#area').value,
+        village: $('#village').value.trim()
+      };
+
+      return {
+        id: crypto.randomUUID(),
+        title: step1.title,
+        company: step3.companyName,
+        min: step1.min,
+        max: step1.max,
+        type: step1.type,
+        location: step3.area || '—',
+        tags: buildTags(step1, step2),
+        phone: step2.callNumber,
+        whatsapp: step2.whatsApp,
+        owner: currentUser?.username || 'unknown',
+        meta: { step1, step2, step3, createdAt: Date.now() }
+      };
+    }
+
+    function buildTags(s1, s2){
+      const tags = [];
+      if (s1.shifts) tags.push(s1.shifts);
+      if (s1.facility) tags.push(s1.facility);
+      if (s2.education) tags.push(s2.education);
+      if (s2.experience) tags.push(s2.experience);
+      return tags.slice(0,4);
+    }
+
+    // Init
+    (function init(){
+      ensureSeedJobs();
+      bindEvents();
+      loadAuth();
+      renderJobs();
+
+      // Default section
+      showSection('Home');
+    })();
+  </script>
+</body>
+</html>
