@@ -1,1085 +1,1637 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Meechto — Premium Job Portal</title>
-  <meta name="description" content="Meechto Job Portal with HR auth, job postings, search & applications." />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root{
-      /* Enhanced color system */
-      --brand: #10b981;           /* primary */
-      --brand-light: #34d399;     /* lighter brand */
-      --brand-dark: #059669;      /* darker brand */
-      --accent: #f59e0b;          /* accent (limited use) */
-      --accent-light: #fbbf24;    /* lighter accent */
-      --bg: #0f172a;              /* background - deeper blue */
-      --bg-light: #1e293b;        /* lighter background */
-      --card: #1e293b;            /* cards */
-      --card-light: #334155;      /* lighter cards */
-      --muted: #94a3b8;           /* text muted */
-      --fg: #f1f5f9;              /* text primary */
-      --fg-dark: #cbd5e1;         /* darker text */
-      --border: #334155;          /* subtle borders */
-      --success: #10b981;         /* success color */
-      --warning: #f59e0b;         /* warning color */
-      --error: #ef4444;           /* error color */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechto AI Hub | Admin Panel</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #2d5bff;
+            --secondary-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-gradient: linear-gradient(135deg, var(--primary-blue), var(--secondary-purple));
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --shadow-soft: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.7);
+            --shadow-inset: inset 4px 4px 8px rgba(0, 0, 0, 0.1), inset -4px -4px 8px rgba(255, 255, 255, 0.7);
+            --shadow-glow: 0 0 20px rgba(45, 91, 255, 0.3);
+            --border-radius: 16px;
+            --transition: all 0.3s ease;
+        }
 
-      --radius: 16px;             /* increased border radius */
-      --radius-sm: 8px;           /* small radius */
-      --shadow: 0 20px 40px rgba(0,0,0,0.35);
-      --shadow-soft: 0 10px 25px rgba(0,0,0,0.25);
-      --focus-ring: 0 0 0 3px color-mix(in oklab, var(--brand) 40%, transparent);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-    /* Base */
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif;
-      color:var(--fg);
-      background: radial-gradient(1200px 800px at 80% -10%, rgba(16,185,129,0.15), transparent),
-                  radial-gradient(1000px 700px at 0% 0%, rgba(245,158,11,0.08), transparent),
-                  var(--bg);
-      line-height:1.6;
-      overflow-x: hidden;
-    }
-    a{color:inherit;text-decoration:none}
-    img{max-width:100%;display:block}
+        body {
+            background: linear-gradient(-45deg, #f0f5ff, #f8f7ff, #f0f5ff, #f8f7ff);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #333;
+        }
 
-    /* Layout */
-    .shell{max-width:1200px;margin:0 auto;padding:24px}
-    header.nav{
-      position:sticky;top:0;z-index:50;
-      backdrop-filter: blur(12px);
-      background: color-mix(in oklab, var(--bg) 80%, transparent);
-      border-bottom: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .nav-inner{
-      display:flex;align-items:center;justify-content:space-between;gap:16px;
-      padding:14px 0;
-    }
-    .brand{
-      display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.2px;
-      font-size: 1.25rem;
-    }
-    .brand-logo{
-      width:40px;height:40px;border-radius:12px;
-      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-      box-shadow: var(--shadow-soft);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 20px;
-    }
-    .menu{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-    .btn, .chip{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      border:1px solid var(--border);
-      background: color-mix(in oklab, var(--card) 92%, transparent);
-      color: var(--fg);
-      padding:10px 18px;border-radius:var(--radius-sm);font-weight:600;cursor:pointer;
-      transition: var(--transition);
-      font-size: 0.9rem;
-    }
-    .btn:hover{transform:translateY(-2px);border-color:color-mix(in oklab, var(--brand) 35%, var(--border)); box-shadow: var(--shadow-soft);}
-    .btn.primary{
-      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-      border-color:transparent;
-      color:white;
-      box-shadow: 0 4px 14px color-mix(in oklab, var(--brand) 40%, transparent);
-    }
-    .btn.primary:hover{transform:translateY(-2px); box-shadow: 0 6px 20px color-mix(in oklab, var(--brand) 50%, transparent);}
-    .btn.ghost{background:transparent; border-color: transparent;}
-    .btn.ghost:hover{background: color-mix(in oklab, var(--card) 50%, transparent);}
-    .chip{padding:8px 16px;font-weight:600; border-radius: 20px;}
-    .chip.active{
-      background: color-mix(in oklab, var(--brand) 20%, var(--card)); 
-      border-color: color-mix(in oklab, var(--brand) 45%, var(--border)); 
-      color: #c7fcea;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
-    }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-    main{padding-top:24px}
-    .grid-2{display:grid;grid-template-columns: 1.1fr .9fr;gap:24px}
-    .stack{display:flex;flex-direction:column;gap:16px}
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
 
-    /* Cards */
-    .card{
-      background: color-mix(in oklab, var(--card) 96%, transparent);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-soft);
-      transition: var(--transition);
-      overflow: hidden;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow);
-      border-color: color-mix(in oklab, var(--brand) 20%, var(--border));
-    }
-    .card.pad{padding:24px}
-    .card-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
-    .card-title h3 {font-weight: 700; font-size: 1.4rem;}
-    .subtle{color:var(--muted);font-size:14px}
-    .divider{height:1px;background:var(--border);margin:12px 0}
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-    /* Search */
-    .searchbar{
-      display:flex;gap:12px;align-items:center;flex-wrap:wrap
-    }
-    .input{
-      flex:1;min-width:240px;
-      background: var(--bg-light);border:1px solid var(--border);color:var(--fg);
-      padding:14px 16px;border-radius:var(--radius-sm);outline:none;
-      transition: var(--transition);
-      font-size: 0.95rem;
-    }
-    .input:focus{
-      border-color: color-mix(in oklab, var(--brand) 45%, var(--border)); 
-      box-shadow: var(--focus-ring);
-      background: color-mix(in oklab, var(--bg-light) 90%, transparent);
-    }
+        /* Login Dialog */
+        .login-dialog {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease;
+        }
 
-    /* Job list */
-    .jobs{display:grid;grid-template-columns: repeat(2, minmax(0, 1fr)); gap:20px}
-    .job{
-      display:flex; gap:16px; align-items:flex-start;
-      padding:20px; position:relative; overflow:hidden;
-      transform: translateY(10px); opacity:0; animation:fadeUp .6s ease forwards;
-    }
-    .job:hover{
-      border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
-      transform: translateY(-5px);
-    }
-    .logo{
-      width:52px;height:52px;border-radius:12px;flex:0 0 52px;
-      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
-      display:grid;place-items:center;font-weight:800;color:white;letter-spacing:.3px;
-      font-size: 1.1rem;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-    }
-    .job h4{margin:4px 0 6px 0; font-size: 1.2rem; font-weight: 700;}
-    .meta{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px 0}
-    .badge{
-      font-size:12px;color:#d1d5db;background:#0d1318;border:1px solid var(--border);
-      border-radius:999px;padding:6px 12px;
-      transition: var(--transition);
-    }
-    .badge:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .salary{color:#befae1;font-weight:700; background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 20px;}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
+        .dialog-content {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s ease;
+        }
 
-    /* Empty/section visibility */
-    [hidden]{display:none !important}
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
 
-    /* Sidebar dashboard (compact for mobile-first) */
-    .dash-menu{
-      display:flex;gap:12px;flex-wrap:wrap
-    }
+        .dialog-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            animation: pulse 2s infinite;
+        }
 
-    /* Forms */
-    form .row-2{display:grid;grid-template-columns: 1fr 1fr; gap:16px}
-    label{display:block;font-size:14px;color:var(--muted);margin-bottom:8px; font-weight: 500;}
-    select, textarea{width:100%}
-    textarea{min-height:100px;resize:vertical; line-height: 1.5;}
-    .helper{font-size:12px;color:var(--muted)}
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
-    .stepper{display:flex;gap:12px;align-items:center;margin-bottom:16px}
-    .step{
-      width:32px;height:32px;border-radius:999px;display:grid;place-items:center;
-      background:var(--bg-light);border:1px solid var(--border);font-size:14px;color:var(--muted);
-      transition: var(--transition);
-    }
-    .step.active{
-      background: linear-gradient(135deg, var(--brand), var(--brand-dark)); 
-      color:white;
-      border-color:transparent;
-      font-weight:800;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-    }
+        .dialog-icon i {
+            font-size: 48px;
+            color: white;
+        }
 
-    /* Applications table */
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:12px;border-bottom:1px solid var(--border);text-align:left;font-size:14px}
-    th{color:#cbd5e1;font-weight:700; background: var(--bg-light);}
-    tr:hover td{background:color-mix(in oklab, var(--bg-light) 90%, transparent);}
+        .dialog-content h2 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    /* Dialogs */
-    .overlay{
-      position:fixed;inset:0;background:rgba(0,0,0,.7);
-      display:grid;place-items:center;padding:20px;z-index:60;
-      backdrop-filter: blur(5px);
-      animation: fadeIn 0.3s ease;
-    }
-    .dialog{width:100%;max-width:540px; animation: scaleIn 0.3s ease;}
-    .dialog .card.pad{padding:24px;}
+        .dialog-content p {
+            color: #666;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
 
-    /* Toast */
-    .toast{
-      position:fixed;right:24px;bottom:24px;background:var(--card);
-      color:var(--fg);
-      border:1px solid color-mix(in oklab, var(--brand) 45%, var(--border));
-      padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);z-index:70;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      animation: slideIn 0.3s ease;
-    }
-    .toast i {font-size: 1.2rem;}
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
 
-    /* Animations */
-    @keyframes fadeIn{
-      from{opacity:0; }
-      to{opacity:1; }
-    }
-    @keyframes fadeUp{
-      from{opacity:0; transform: translateY(10px)}
-      to{opacity:1; transform: translateY(0)}
-    }
-    @keyframes scaleIn {
-      from {transform: scale(0.9); opacity: 0;}
-      to {transform: scale(1); opacity: 1;}
-    }
-    @keyframes slideIn {
-      from {transform: translateX(100px); opacity: 0;}
-      to {transform: translateX(0); opacity: 1;}
-    }
-    .fade-in{opacity:0;animation:fadeUp .5s ease forwards}
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
 
-    /* Pulse animation */
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-    .pulse {animation: pulse 2s infinite;}
+        .input-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
 
-    /* Responsive */
-    @media (max-width: 960px){
-      .grid-2{grid-template-columns: 1fr}
-      .jobs{grid-template-columns: 1fr}
-      .nav-inner{align-items:flex-start;gap:12px}
-    }
-    @media (max-width: 640px){
-      .shell {padding: 16px;}
-      .searchbar {flex-direction: column; align-items: stretch;}
-      .menu {gap: 8px;}
-      .btn, .chip {padding: 8px 12px; font-size: 0.85rem;}
-      form .row-2 {grid-template-columns: 1fr;}
-      .job {flex-direction: column; text-align: center;}
-      .logo {align-self: center;}
-      .row {justify-content: center;}
-    }
+        .input-group input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(45, 91, 255, 0.1);
+            outline: none;
+        }
 
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: var(--bg-light);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--brand);
-    }
-  </style>
+        .dialog-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .dialog-actions button {
+            flex: 1;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .primary-dialog-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .secondary-dialog-btn {
+            background: transparent;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+        }
+
+        .dialog-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-soft);
+            padding: 24px 0;
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            padding: 0 24px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 24px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            margin: 8px 12px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            color: #555;
+        }
+
+        .menu-item:hover {
+            background: var(--glass-bg);
+            box-shadow: var(--shadow-inset);
+            color: var(--primary-blue);
+        }
+
+        .menu-item.active {
+            background: var(--glass-bg);
+            box-shadow: var(--shadow-inset);
+            color: var(--primary-blue);
+        }
+
+        .menu-item i {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .badge {
+            background: var(--accent-green);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 50px;
+            padding: 8px 16px;
+            width: 400px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            padding: 8px;
+            width: 100%;
+            background: transparent;
+            font-size: 14px;
+        }
+
+        .search-bar i {
+            color: #777;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 8px 16px;
+            border-radius: 50px;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-left: 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: var(--glass-bg);
+            border: none;
+            border-radius: var(--border-radius);
+            width: 40px;
+            height: 40px;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-soft);
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Overlay for mobile */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Section */
+        .welcome-section {
+            margin-bottom: 32px;
+        }
+
+        .welcome-section h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 8px;
+            color: var(--primary-blue);
+        }
+
+        /* Admin Table Styles */
+        .admin-table {
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 32px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(45, 91, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .primary-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+        }
+
+        .danger-btn {
+            background: transparent;
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .table-content {
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 24px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        th {
+            font-weight: 600;
+            color: #555;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+        }
+
+        .status-inactive {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--accent-yellow);
+        }
+
+        .action-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .edit-btn {
+            background: rgba(45, 91, 255, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 32px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(45, 91, 255, 0.1);
+            outline: none;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Image Preview */
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #ccc;
+            box-shadow: var(--shadow-inset);
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .search-bar {
+                width: 300px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                position: fixed;
+                height: 100vh;
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .mobile-toggle {
+                display: flex;
+            }
+            
+            .top-nav {
+                padding: 16px;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .main-content {
+                padding: 24px 16px;
+            }
+            
+            .overlay.active {
+                display: block;
+            }
+            
+            .table-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-bar {
+                display: none;
+            }
+            
+            .welcome-section h1 {
+                font-size: 28px;
+            }
+            
+            .welcome-section p {
+                font-size: 16px;
+            }
+            
+            .dialog-content {
+                padding: 24px;
+            }
+            
+            th, td {
+                padding: 12px 16px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header class="nav">
-    <div class="shell nav-inner" role="navigation" aria-label="Main">
-      <div class="brand">
-        <div class="brand-logo" aria-hidden="true">M</div>
-        <div>
-          <div>Meechto</div>
-          <div class="subtle" style="margin-top:-2px">Premium Job Portal</div>
+    <!-- Animated Background -->
+    <div class="particles" id="particles-js"></div>
+    
+    <!-- Login Dialog -->
+    <div class="login-dialog" id="loginDialog">
+        <div class="dialog-content">
+            <div class="dialog-icon">
+                <i class="mdi mdi-shield-account"></i>
+            </div>
+            <h2>Admin Login</h2>
+            <p>Enter your credentials to access the admin panel</p>
+            
+            <div class="input-group">
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" placeholder="Enter admin email">
+            </div>
+            
+            <div class="input-group">
+                <label for="adminPassword">Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter password">
+            </div>
+            
+            <div id="loginMessage" style="color: red; margin-bottom: 16px; display: none;"></div>
+            
+            <div class="dialog-actions">
+                <button class="primary-dialog-btn" id="loginBtn">
+                    <i class="mdi mdi-login"></i> Login
+                </button>
+                <button class="secondary-dialog-btn" id="cancelBtn">
+                    Cancel
+                </button>
+            </div>
         </div>
-      </div>
-      <nav class="menu" aria-label="Menu">
-        <button class="btn ghost" id="btnHome">Home</button>
-        <button class="btn ghost" id="btnNewJob">New Job Post</button>
-        <button class="btn ghost" id="btnApplications">Applications</button>
-        <span class="subtle" id="welcomeUser" aria-live="polite"></span>
-        <button class="btn primary" id="btnLogin"><i class="fas fa-sign-in-alt"></i> HR Login</button>
-        <button class="btn" id="btnSignup">Sign Up</button>
-        <button class="btn" id="btnLogout" hidden><i class="fas fa-sign-out-alt"></i> Logout</button>
-      </nav>
     </div>
-  </header>
-
-  <main class="shell">
-     Home / Jobs 
-    <section id="sectionHome" class="stack fade-in" style="animation-delay:.1s">
-      <div class="card pad">
-        <div class="card-title">
-          <h3 class="text-balance">Find Your Dream Job</h3>
-          <span class="subtle">Search from thousands of opportunities</span>
-        </div>
-        <div class="searchbar">
-          <input id="searchInput" class="input" type="search" placeholder="Search jobs e.g. Supervisor, React, Pune" aria-label="Search jobs" />
-          <div class="row" role="radiogroup" aria-label="Filter jobs by type">
-            <button class="chip active" data-filter="all" aria-pressed="true">All</button>
-            <button class="chip" data-filter="Full-Time" aria-pressed="false">Full-Time</button>
-            <button class="chip" data-filter="Part-Time" aria-pressed="false">Part-Time</button>
-            <button class="chip" data-filter="Contract" aria-pressed="false">Contract</button>
-            <button class="chip" data-filter="Internship" aria-pressed="false">Internship</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="jobs" id="jobsGrid" aria-live="polite"></div>
-    </section>
-
-     New Job Post 
-    <section id="sectionNewJob" class="stack fade-in" hidden style="animation-delay:.1s">
-      <div class="card pad">
-        <div class="card-title">
-          <h3><i class="fas fa-plus-circle"></i> New Job Post</h3>
-          <span class="subtle">Fill details in steps</span>
-        </div>
-
-        <div class="stepper">
-          <div class="step" data-step="1">1</div>
-          <div class="step" data-step="2">2</div>
-          <div class="step" data-step="3">3</div>
-        </div>
-
-        <form id="jobForm" novalidate>
-           Step 1: Job Details 
-          <div data-step-panel="1" class="stack">
-            <div class="row-2">
-              <div>
-                <label for="jobTitle"><i class="fas fa-tag"></i> Job Title</label>
-                <input id="jobTitle" class="input" required placeholder="HR, Supervisor, etc." />
-              </div>
-              <div>
-                <label for="openings"><i class="fas fa-users"></i> Number of Openings</label>
-                <input id="openings" class="input" type="number" min="1" required placeholder="e.g. 3" />
-              </div>
-              <div>
-                <label for="minSalary"><i class="fas fa-money-bill-wave"></i> Minimum Salary (₹)</label>
-                <input id="minSalary" class="input" type="number" min="0" required placeholder="e.g. 15000" />
-              </div>
-              <div>
-                <label for="maxSalary"><i class="fas fa-money-bill-wave"></i> Maximum Salary (₹)</label>
-                <input id="maxSalary" class="input" type="number" min="0" required placeholder="e.g. 25000" />
-              </div>
-              <div>
-                <label for="shifts"><i class="fas fa-clock"></i> Shifts</label>
-                <input id="shifts" class="input" required placeholder="Day/Night/Rotational" />
-              </div>
-              <div>
-                <label for="jobType"><i class="fas fa-briefcase"></i> Job Type</label>
-                <select id="jobType" class="input" required>
-                  <option value="">Select type</option>
-                  <option>Full-Time</option>
-                  <option>Part-Time</option>
-                  <option>Contract</option>
-                  <option>Internship</option>
-                </select>
-              </div>
-              <div>
-                <label for="facility"><i class="fas fa-building"></i> Facility</label>
-                <input id="facility" class="input" required placeholder="e.g. Pune Plant A" />
-              </div>
-              <div>
-                <label for="applicationCharges"><i class="fas fa-credit-card"></i> Application Charges</label>
-                <select id="applicationCharges" class="input" required>
-                  <option value="">Select</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
+    
+    <!-- Overlay for mobile menu -->
+    <div class="overlay" id="overlay"></div>
+    
+    <!-- Add/Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Item</h2>
+                <button class="modal-close" id="modalClose">
+                    <i class="mdi mdi-close"></i>
+                </button>
             </div>
-          </div>
-
-           Step 2: Candidate Requirement 
-          <div data-step-panel="2" class="stack" hidden>
-            <div class="row-2">
-              <div>
-                <label for="education"><i class="fas fa-graduation-cap"></i> Minimum Education</label>
-                <input id="education" class="input" required placeholder="e.g. BSc, 12th Pass" />
-              </div>
-              <div>
-                <label for="courseName"><i class="fas fa-book"></i> Course Name (Optional)</label>
-                <input id="courseName" class="input" placeholder="e.g. BSc in Chemistry" />
-              </div>
-              <div>
-                <label for="experience"><i class="fas fa-chart-line"></i> Experience</label>
-                <input id="experience" class="input" required placeholder="e.g. 1-3 years" />
-              </div>
-              <div>
-                <label for="gender"><i class="fas fa-venus-mars"></i> Gender</label>
-                <select id="gender" class="input" required>
-                  <option value="">Any</option>
-                  <option>Male</option>
-                  <option>Female</option>
-                  <option>Any</option>
-                </select>
-              </div>
-              <div>
-                <label for="callNumber"><i class="fas fa-phone"></i> Manage via Calling Number</label>
-                <input id="callNumber" class="input" type="tel" required placeholder="e.g. +91 9876543210" />
-              </div>
-              <div>
-                <label for="whatsApp"><i class="fab fa-whatsapp"></i> WhatsApp Number</label>
-                <input id="whatsApp" class="input" type="tel" required placeholder="e.g. +91 9876543210" />
-              </div>
-              <div>
-                <label for="hrEmail"><i class="fas fa-envelope"></i> Email</label>
-                <input id="hrEmail" class="input" type="email" required placeholder="e.g. hr@company.com" />
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:28px">
-                <input id="terms" type="checkbox" aria-label="Agree to Terms and Conditions" />
-                <span class="helper">I agree to the Terms & Conditions</span>
-              </div>
+            <div class="modal-body">
+                <div id="modalForm">
+                    <!-- Dynamic form will be inserted here -->
+                </div>
             </div>
-          </div>
-
-           Step 3: Company Details 
-          <div data-step-panel="3" class="stack" hidden>
-            <div>
-              <label><i class="fas fa-industry"></i> Select your company type</label>
-              <div class="row" role="radiogroup" aria-label="Company Type">
-                <label class="chip"><input type="radio" name="companyType" value="Company" checked /> Company</label>
-                <label class="chip"><input type="radio" name="companyType" value="Consultancy" /> Consultancy</label>
-                <label class="chip"><input type="radio" name="companyType" value="Manpower Firm" /> Manpower Firm</label>
-                <label class="chip"><input type="radio" name="companyType" value="Vendor" /> Vendor</label>
-              </div>
-            </div>
-            <div class="row-2">
-              <div>
-                <label for="companyName"><i class="fas fa-building"></i> Company Name</label>
-                <input id="companyName" class="input" required />
-              </div>
-              <div>
-                <label for="companyAddress"><i class="fas fa-map-marker-alt"></i> Company Address</label>
-                <input id="companyAddress" class="input" required />
-              </div>
-              <div>
-                <label for="companySize"><i class="fas fa-chart-pie"></i> Company Size</label>
-                <input id="companySize" class="input" required placeholder="e.g. 50-200" />
-              </div>
-              <div>
-                <label for="busRoute"><i class="fas fa-bus"></i> Bus Route (Optional)</label>
-                <input id="busRoute" class="input" placeholder="e.g. Bhosari, Chakan, Moshi" />
-              </div>
-              <div>
-                <label for="area"><i class="fas fa-map"></i> Area</label>
-                <select id="area" class="input" required>
-                  <option value="">Select area</option>
-                  <option>Pune</option>
-                  <option>Mumbai</option>
-                  <option>Nashik</option>
-                  <option>Nagpur</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label for="village"><i class="fas fa-home"></i> Village Name</label>
-                <input id="village" class="input" placeholder="e.g. Alandi, Chakan, Moshi" />
-              </div>
-            </div>
-          </div>
-
-          <div class="row" style="justify-content:space-between;margin-top:10px">
-            <button type="button" class="btn" id="btnPrev"><i class="fas fa-arrow-left"></i> Back</button>
-            <div class="row">
-              <button type="button" class="btn" id="btnNext">Next <i class="fas fa-arrow-right"></i></button>
-              <button type="submit" class="btn primary" id="btnSubmit" hidden><i class="fas fa-check"></i> Submit</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </section>
-
-     Applications 
-    <section id="sectionApplications" class="stack fade-in" hidden style="animation-delay:.1s">
-      <div class="card pad">
-        <div class="card-title">
-          <h3><i class="fas fa-file-alt"></i> Applications</h3>
-          <span class="subtle">All candidate applications</span>
         </div>
-        <div class="divider"></div>
-        <div class="stack">
-          <div class="card pad" style="overflow:auto">
-            <table aria-describedby="applicationsDesc">
-              <caption id="applicationsDesc" class="sr-only">Candidate applications table</caption>
-              <thead>
+    </div>
+    
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="mdi mdi-robot"></i>
+                </div>
+                <div class="logo-text">Mechto AI Hub</div>
+            </div>
+            
+            <nav class="menu">
+                <div class="menu-item active" data-page="dashboard">
+                    <i class="mdi mdi-view-dashboard"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="menu-item" data-page="resume-templates">
+                    <i class="mdi mdi-file-document"></i>
+                    <span>Resume Templates</span>
+                </div>
+                <div class="menu-item" data-page="job-portal">
+                    <i class="mdi mdi-briefcase"></i>
+                    <span>Job Portal</span>
+                </div>
+                <div class="menu-item" data-page="prompt-store">
+                    <i class="mdi mdi-store"></i>
+                    <span>Prompt Store</span>
+                </div>
+                <div class="menu-item" data-page="users">
+                    <i class="mdi mdi-account-group"></i>
+                    <span>Users</span>
+                </div>
+                <div class="menu-item" data-page="settings">
+                    <i class="mdi mdi-cog"></i>
+                    <span>Settings</span>
+                </div>
+                <div class="menu-item" id="logoutBtn">
+                    <i class="mdi mdi-logout"></i>
+                    <span>Logout</span>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="content-wrapper">
+            <!-- Top Navigation -->
+            <header class="top-nav">
+                <button class="mobile-toggle" id="sidebarToggle">
+                    <i class="mdi mdi-menu" id="toggleIcon"></i>
+                </button>
+                
+                <div class="search-bar">
+                    <i class="mdi mdi-magnify"></i>
+                    <input type="text" id="globalSearch" placeholder="Search...">
+                </div>
+                
+                <div class="user-profile">
+                    <span id="adminWelcome">Admin Panel</span>
+                    <div class="avatar">A</div>
+                </div>
+            </header>
+            
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="page-section active">
+                    <div class="welcome-section">
+                        <h1>Admin Dashboard</h1>
+                        <p>Manage all aspects of Mechto AI Hub from this admin panel</p>
+                    </div>
+                    
+                    <div class="stats-section" id="dashboardStats">
+                        <div class="stat-card">
+                            <div class="stat-value" id="templatesCount">0</div>
+                            <div class="stat-label">Resume Templates</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="jobsCount">0</div>
+                            <div class="stat-label">Active Jobs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="promptsCount">0</div>
+                            <div class="stat-label">Prompt Store Items</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="usersCount">0</div>
+                            <div class="stat-label">Users</div>
+                        </div>
+                    </div>
+                    
+                    <h2 class="section-title"><i class="mdi mdi-account-group"></i> Recent Activity</h2>
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <div class="table-title">Recent User Activity</div>
+                            <div class="table-actions">
+                                <button class="action-btn secondary-btn" id="refreshActivity">
+                                    <i class="mdi mdi-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activityTableBody">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center;">Loading activity...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Resume Templates Section -->
+                <section id="resume-templates" class="page-section">
+                    <div class="welcome-section">
+                        <h1>Resume Templates Management</h1>
+                        <p>Add, edit, or remove resume templates from the system</p>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <div class="table-title">Resume Templates</div>
+                            <div class="table-actions">
+                                <button class="action-btn primary-btn" id="addTemplateBtn">
+                                    <i class="mdi mdi-plus"></i> Add Template
+                                </button>
+                                <button class="action-btn secondary-btn" id="refreshTemplates">
+                                    <i class="mdi mdi-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="templatesTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center;">Loading templates...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Job Portal Section -->
+                <section id="job-portal" class="page-section">
+                    <div class="welcome-section">
+                        <h1>Job Portal Management</h1>
+                        <p>Manage job listings and applications</p>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <div class="table-title">Job Listings</div>
+                            <div class="table-actions">
+                                <button class="action-btn primary-btn" id="addJobBtn">
+                                    <i class="mdi mdi-plus"></i> Add Job
+                                </button>
+                                <button class="action-btn secondary-btn" id="refreshJobs">
+                                    <i class="mdi mdi-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Job Title</th>
+                                        <th>Company</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center;">Loading jobs...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Prompt Store Section -->
+                <section id="prompt-store" class="page-section">
+                    <div class="welcome-section">
+                        <h1>Prompt Store Management</h1>
+                        <p>Manage AI prompts available in the store</p>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <div class="table-title">Prompt Store Items</div>
+                            <div class="table-actions">
+                                <button class="action-btn primary-btn" id="addPromptBtn">
+                                    <i class="mdi mdi-plus"></i> Add Prompt
+                                </button>
+                                <button class="action-btn secondary-btn" id="refreshPrompts">
+                                    <i class="mdi mdi-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="promptsTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center;">Loading prompts...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Users Section -->
+                <section id="users" class="page-section">
+                    <div class="welcome-section">
+                        <h1>User Management</h1>
+                        <p>Manage user accounts and permissions</p>
+                    </div>
+                    
+                    <div class="admin-table">
+                        <div class="table-header">
+                            <div class="table-title">Users</div>
+                            <div class="table-actions">
+                                <button class="action-btn primary-btn" id="addUserBtn">
+                                    <i class="mdi mdi-plus"></i> Add User
+                                </button>
+                                <button class="action-btn secondary-btn" id="refreshUsers">
+                                    <i class="mdi mdi-refresh"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center;">Loading users...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Settings Section -->
+                <section id="settings" class="page-section">
+                    <div class="welcome-section">
+                        <h1>System Settings</h1>
+                        <p>Configure system-wide settings and preferences</p>
+                    </div>
+                    
+                    <div class="form-container">
+                        <h2 class="section-title"><i class="mdi mdi-cog"></i> General Settings</h2>
+                        
+                        <div class="form-group">
+                            <label for="siteName">Site Name</label>
+                            <input type="text" id="siteName" class="form-control" value="Mechto AI Hub">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="siteDescription">Site Description</label>
+                            <textarea id="siteDescription" class="form-control">Your AI-powered productivity suite</textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="action-btn primary-btn" id="saveGeneralSettings">
+                                <i class="mdi mdi-content-save"></i> Save Settings
+                            </button>
+                            <button class="action-btn secondary-btn" id="resetSettings">
+                                <i class="mdi mdi-restore"></i> Reset to Defaults
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-container">
+                        <h2 class="section-title"><i class="mdi mdi-account-key"></i> Admin Account</h2>
+                        
+                        <div class="form-group">
+                            <label for="adminName">Admin Name</label>
+                            <input type="text" id="adminName" class="form-control" value="Admin User">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="adminEmail">Admin Email</label>
+                            <input type="email" id="adminEmail" class="form-control" value="admin@mechtoai.com">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="action-btn primary-btn" id="updateAdminAccount">
+                                <i class="mdi mdi-account-edit"></i> Update Account
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE CONFIGURATION ====================
+        // Replace with your actual Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            authDomain: "mechto-ai-hub.firebaseapp.com",
+            projectId: "mechto-ai-hub",
+            storageBucket: "mechto-ai-hub.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456789"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ==================== AUTHENTICATION ====================
+        const loginDialog = document.getElementById('loginDialog');
+        const loginBtn = document.getElementById('loginBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const adminEmail = document.getElementById('adminEmail');
+        const adminPassword = document.getElementById('adminPassword');
+        const loginMessage = document.getElementById('loginMessage');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminWelcome = document.getElementById('adminWelcome');
+
+        // Check authentication state
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                loginDialog.style.display = 'none';
+                adminWelcome.textContent = `Welcome, ${user.email}`;
+                loadDashboardData();
+            } else {
+                // User is signed out
+                loginDialog.style.display = 'flex';
+            }
+        });
+
+        // Login functionality
+        loginBtn.addEventListener('click', async function() {
+            const email = adminEmail.value.trim();
+            const password = adminPassword.value.trim();
+            
+            if (!email || !password) {
+                showLoginMessage('Please enter both email and password');
+                return;
+            }
+
+            loginBtn.innerHTML = '<div class="loading-spinner"></div> Logging in...';
+            loginBtn.disabled = true;
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                // Login successful - handled by onAuthStateChanged
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginMessage('Invalid email or password');
+            } finally {
+                loginBtn.innerHTML = '<i class="mdi mdi-login"></i> Login';
+                loginBtn.disabled = false;
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', function() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html';
+            });
+        });
+
+        function showLoginMessage(message) {
+            loginMessage.textContent = message;
+            loginMessage.style.display = 'block';
+        }
+
+        // ==================== DASHBOARD DATA ====================
+        async function loadDashboardData() {
+            try {
+                // Load counts for dashboard
+                const templatesSnapshot = await db.collection('resume_templates').get();
+                const jobsSnapshot = await db.collection('job_listings').where('status', '==', 'active').get();
+                const promptsSnapshot = await db.collection('prompt_store').get();
+                const usersSnapshot = await db.collection('users').get();
+
+                document.getElementById('templatesCount').textContent = templatesSnapshot.size;
+                document.getElementById('jobsCount').textContent = jobsSnapshot.size;
+                document.getElementById('promptsCount').textContent = promptsSnapshot.size;
+                document.getElementById('usersCount').textContent = usersSnapshot.size;
+
+                // Load recent activity
+                loadRecentActivity();
+                
+                // Load all tables
+                loadTemplatesTable();
+                loadJobsTable();
+                loadPromptsTable();
+                loadUsersTable();
+
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // ==================== TEMPLATES MANAGEMENT ====================
+        async function loadTemplatesTable() {
+            try {
+                const snapshot = await db.collection('resume_templates').orderBy('createdAt', 'desc').get();
+                const tableBody = document.getElementById('templatesTableBody');
+                
+                if (snapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No templates found</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const template = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.id.substring(0, 8)}</td>
+                        <td>${template.name}</td>
+                        <td>${template.category}</td>
+                        <td><span class="status-badge status-${template.status}">${template.status}</span></td>
+                        <td>${template.createdAt ? new Date(template.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                            <div class="action-icons">
+                                <div class="icon-btn edit-btn" onclick="editTemplate('${doc.id}')">
+                                    <i class="mdi mdi-pencil"></i>
+                                </div>
+                                <div class="icon-btn delete-btn" onclick="deleteTemplate('${doc.id}')">
+                                    <i class="mdi mdi-delete"></i>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        }
+
+        // Add Template functionality
+        document.getElementById('addTemplateBtn').addEventListener('click', function() {
+            modalTitle.textContent = 'Add New Resume Template';
+            modalForm.innerHTML = `
+                <div class="form-group">
+                    <label for="templateName">Template Name</label>
+                    <input type="text" id="templateName" class="form-control" placeholder="Enter template name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="templateCategory">Category</label>
+                    <select id="templateCategory" class="form-control">
+                        <option value="Professional">Professional</option>
+                        <option value="Creative">Creative</option>
+                        <option value="Executive">Executive</option>
+                        <option value="Minimalist">Minimalist</option>
+                        <option value="Technology">Technology</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="templateDescription">Description</label>
+                    <textarea id="templateDescription" class="form-control" placeholder="Enter template description"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="templateStatus">Status</label>
+                    <select id="templateStatus" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button class="action-btn primary-btn" onclick="saveTemplate()">
+                        <i class="mdi mdi-content-save"></i> Save Template
+                    </button>
+                    <button class="action-btn secondary-btn" onclick="editModal.classList.remove('active')">
+                        <i class="mdi mdi-close"></i> Cancel
+                    </button>
+                </div>
+            `;
+            editModal.classList.add('active');
+        });
+
+        async function saveTemplate() {
+            const templateData = {
+                name: document.getElementById('templateName').value,
+                category: document.getElementById('templateCategory').value,
+                description: document.getElementById('templateDescription').value,
+                status: document.getElementById('templateStatus').value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('resume_templates').add(templateData);
+                alert('Template saved successfully!');
+                editModal.classList.remove('active');
+                loadTemplatesTable();
+                loadDashboardData(); // Refresh counts
+            } catch (error) {
+                console.error('Error saving template:', error);
+                alert('Error saving template. Please try again.');
+            }
+        }
+
+        // ==================== JOBS MANAGEMENT ====================
+        async function loadJobsTable() {
+            try {
+                const snapshot = await db.collection('job_listings').orderBy('createdAt', 'desc').get();
+                const tableBody = document.getElementById('jobsTableBody');
+                
+                if (snapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No jobs found</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const job = doc.data();
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${doc.id.substring(0, 8)}</td>
+                        <td>${job.title}</td>
+                        <td>${job.company}</td>
+                        <td>${job.location}</td>
+                        <td><span class="status-badge status-${job.status}">${job.status}</span></td>
+                        <td>${job.createdAt ? new Date(job.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
+                        <td>
+                            <div class="action-icons">
+                                <div class="icon-btn edit-btn" onclick="editJob('${doc.id}')">
+                                    <i class="mdi mdi-pencil"></i>
+                                </div>
+                                <div class="icon-btn delete-btn" onclick="deleteJob('${doc.id}')">
+                                    <i class="mdi mdi-delete"></i>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+            }
+        }
+
+        // Similar implementations for prompts and users...
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function loadRecentActivity() {
+            // This would typically load from an activity collection
+            const activityTableBody = document.getElementById('activityTableBody');
+            activityTableBody.innerHTML = `
                 <tr>
-                  <th>Job Title</th>
-                  <th>Candidate</th>
-                  <th>Contact</th>
-                  <th>Message</th>
-                  <th>Status</th>
+                    <td>Alex Johnson</td>
+                    <td>Created Resume</td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                    <td><span class="status-badge status-active">Completed</span></td>
                 </tr>
-              </thead>
-              <tbody id="applicationsBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
+                <tr>
+                    <td>Sarah Miller</td>
+                    <td>Applied for Job</td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                    <td><span class="status-badge status-pending">Pending</span></td>
+                </tr>
+            `;
+        }
 
-   Apply Dialog 
-  <div class="overlay" id="applyOverlay" hidden>
-    <div class="dialog card pad">
-      <div class="card-title">
-        <h4><i class="fas fa-edit"></i> Apply to Job</h4>
-        <button class="btn" id="closeApply"><i class="fas fa-times"></i> Close</button>
-      </div>
-      <form id="applyForm" novalidate>
-        <input type="hidden" id="applyJobId" />
-        <div class="row-2">
-          <div>
-            <label for="candName"><i class="fas fa-user"></i> Full Name</label>
-            <input id="candName" class="input" required />
-          </div>
-          <div>
-            <label for="candEmail"><i class="fas fa-envelope"></i> Email</label>
-            <input id="candEmail" class="input" type="email" required />
-          </div>
-          <div>
-            <label for="candPhone"><i class="fas fa-phone"></i> Phone</label>
-            <input id="candPhone" class="input" type="tel" required />
-          </div>
-          <div>
-            <label for="candResume"><i class="fas fa-file-pdf"></i> Resume Link (Optional)</label>
-            <input id="candResume" class="input" type="url" placeholder="https://…" />
-          </div>
-          <div style="grid-column: 1 / -1">
-            <label for="candMessage"><i class="fas fa-comment"></i> Message</label>
-            <textarea id="candMessage" class="input" placeholder="Brief note to HR"></textarea>
-          </div>
-        </div>
-        <div class="row" style="justify-content:flex-end;margin-top:10px">
-          <button type="submit" class="btn primary"><i class="fas fa-paper-plane"></i> Submit Application</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        // Refresh buttons
+        document.getElementById('refreshTemplates').addEventListener('click', loadTemplatesTable);
+        document.getElementById('refreshJobs').addEventListener('click', loadJobsTable);
+        document.getElementById('refreshPrompts').addEventListener('click', loadPromptsTable);
+        document.getElementById('refreshUsers').addEventListener('click', loadUsersTable);
+        document.getElementById('refreshActivity').addEventListener('click', loadRecentActivity);
 
-   Auth Dialogs 
-  <div class="overlay" id="loginOverlay" hidden>
-    <div class="dialog card pad">
-      <div class="card-title">
-        <h4><i class="fas fa-sign-in-alt"></i> HR Login</h4>
-        <button class="btn" id="closeLogin"><i class="fas fa-times"></i> Close</button>
-      </div>
-      <form id="loginForm" novalidate>
-        <div class="stack">
-          <div>
-            <label for="loginUsername"><i class="fas fa-user"></i> Username</label>
-            <input id="loginUsername" class="input" required />
-          </div>
-          <div>
-            <label for="loginPassword"><i class="fas fa-lock"></i> Password</label>
-            <input id="loginPassword" class="input" type="password" required />
-          </div>
-        </div>
-        <div class="row" style="justify-content:space-between;margin-top:10px">
-          <button type="button" class="btn" id="gotoSignup">Create Account</button>
-          <button type="submit" class="btn primary">Login</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        // ==================== UI FUNCTIONALITY ====================
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const overlay = document.getElementById('overlay');
+        let isSidebarOpen = false;
 
-  <div class="overlay" id="signupOverlay" hidden>
-    <div class="dialog card pad">
-      <div class="card-title">
-        <h4><i class="fas fa-user-plus"></i> HR Registration</h4>
-        <button class="btn" id="closeSignup"><i class="fas fa-times"></i> Close</button>
-      </div>
-      <form id="signupForm" novalidate>
-        <div class="row-2">
-          <div>
-            <label for="fullName"><i class="fas fa-user"></i> Full Name</label>
-            <input id="fullName" class="input" required />
-          </div>
-          <div>
-            <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
-            <input id="email" type="email" class="input" required />
-          </div>
-          <div>
-            <label for="mobile"><i class="fas fa-phone"></i> Mobile Number</label>
-            <input id="mobile" class="input" type="tel" required />
-          </div>
-          <div>
-            <label for="username"><i class="fas fa-at"></i> Username</label>
-            <input id="username" class="input" required />
-          </div>
-          <div>
-            <label for="password"><i class="fas fa-lock"></i> Password</label>
-            <input id="password" class="input" type="password" required minlength="6" />
-          </div>
-          <div>
-            <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
-            <input id="confirmPassword" class="input" type="password" required minlength="6" />
-          </div>
-          <div>
-            <label for="position"><i class="fas fa-briefcase"></i> Position</label>
-            <select id="position" class="input" required>
-              <option value="">Select</option>
-              <option>HR</option>
-              <option>Contractor</option>
-            </select>
-          </div>
-          <div>
-            <label for="company"><i class="fas fa-building"></i> Company Name</label>
-            <input id="company" class="input" required />
-          </div>
-          <div style="grid-column: 1 / -1">
-            <label for="companyAddressReg"><i class="fas fa-map-marker-alt"></i> Company Address</label>
-            <input id="companyAddressReg" class="input" required />
-          </div>
-        </div>
-        <div class="row" style="justify-content:space-between;margin-top:10px">
-          <button type="button" class="btn" id="gotoLogin">Already have account</button>
-          <button type="submit" class="btn primary">Create Account</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            if (isSidebarOpen) {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                toggleIcon.classList.remove('mdi-menu');
+                toggleIcon.classList.add('mdi-close');
+            } else {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                toggleIcon.classList.remove('mdi-close');
+                toggleIcon.classList.add('mdi-menu');
+            }
+        }
 
-   Toast 
-  <div class="toast" id="toast" hidden role="status" aria-live="polite">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage"></span>
-  </div>
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
 
-  <script>
-    // Utilities
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
-    const show = (el) => el.hidden = false;
-    const hide = (el) => el.hidden = true;
-    const toast = (msg, type = 'success') => {
-      const t = $('#toast'); 
-      const icon = $('#toast').querySelector('i');
-      const message = $('#toastMessage');
-      
-      // Set icon based on type
-      if (type === 'error') {
-        icon.className = 'fas fa-exclamation-circle';
-        t.style.borderColor = 'var(--error)';
-      } else if (type === 'warning') {
-        icon.className = 'fas fa-exclamation-triangle';
-        t.style.borderColor = 'var(--warning)';
-      } else {
-        icon.className = 'fas fa-check-circle';
-        t.style.borderColor = 'color-mix(in oklab, var(--brand) 45%, var(--border))';
-      }
-      
-      message.textContent = msg; 
-      show(t);
-      clearTimeout(toast._t); 
-      toast._t = setTimeout(()=> hide(t), 3000);
-    };
+        // Page Navigation
+        const menuItems = document.querySelectorAll('.menu-item');
+        const pageSections = document.querySelectorAll('.page-section');
 
-    // LocalStorage Helpers
-    const LS = {
-      read: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } },
-      write: (k, v) => localStorage.setItem(k, JSON.stringify(v)),
-      push: (k, item) => { const arr = LS.read(k, []); arr.push(item); LS.write(k, arr); }
-    };
+        function showPage(pageId) {
+            pageSections.forEach(section => section.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-page') === pageId) {
+                    item.classList.add('active');
+                }
+            });
 
-    // Auth State
-    let currentUser = null;
+            if (window.innerWidth <= 768 && isSidebarOpen) {
+                toggleSidebar();
+            }
+        }
 
-    function loadAuth() {
-      const users = LS.read('hrUsers', []);
-      const username = localStorage.getItem('currentHrUsername');
-      currentUser = users.find(u => u.username === username) || null;
-
-      const welcome = $('#welcomeUser');
-      const btnLogin = $('#btnLogin');
-      const btnSignup = $('#btnSignup');
-      const btnLogout = $('#btnLogout');
-
-      if (currentUser){
-        welcome.textContent = 'Signed in as ' + currentUser.username;
-        hide(btnLogin); hide(btnSignup); show(btnLogout);
-      } else {
-        welcome.textContent = '';
-        show(btnLogin); show(btnSignup); hide(btnLogout);
-      }
-
-      gateNav();
-    }
-
-    function gateNav(){
-      // Protect sections if not logged-in
-      const canPost = !!currentUser;
-      $('#btnNewJob').disabled = !canPost;
-      $('#btnApplications').disabled = !canPost;
-    }
-
-    // Seed Jobs (10)
-    function ensureSeedJobs(){
-      const jobs = LS.read('jobs', []);
-      if (jobs.length > 0) return;
-
-      const seed = [
-        { id: crypto.randomUUID(), title:'HR Executive', company:'TechCorp', min:18000, max:28000, type:'Full-Time', location:'Pune', tags:['HR','Excel','Recruitment'], phone:'+919876543210', whatsapp:'+919876543210', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Supervisor', company:'DesignStudio', min:20000, max:32000, type:'Full-Time', location:'Mumbai', tags:['Team Lead','Operations'], phone:'+919945112233', whatsapp:'+919945112233', owner:'seed' },
-        { id: crypto.randomUUID(), title:'React Developer', company:'CloudTech', min:45000, max:65000, type:'Contract', location:'Remote', tags:['React','JS','Frontend'], phone:'+919811112222', whatsapp:'+919811112222', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Data Analyst', company:'DataLabs', min:35000, max:50000, type:'Full-Time', location:'Pune', tags:['SQL','Dashboards'], phone:'+919833344455', whatsapp:'+919833344455', owner:'seed' },
-        { id: crypto.randomUUID(), title:'QA Tester', company:'InnovateCorp', min:25000, max:38000, type:'Full-Time', location:'Nashik', tags:['Testing','Automation'], phone:'+919899991111', whatsapp:'+919899991111', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Network Engineer', company:'InfraTech', min:38000, max:52000, type:'Full-Time', location:'Pune', tags:['Cisco','Routing'], phone:'+919833377744', whatsapp:'+919833377744', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Office Admin', company:'GrowthCo', min:18000, max:24000, type:'Part-Time', location:'Pune', tags:['Admin','MS Office'], phone:'+919800022233', whatsapp:'+919800022233', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Intern - Marketing', company:'AppWorks', min:8000, max:12000, type:'Internship', location:'Mumbai', tags:['Marketing','Social'], phone:'+919833300011', whatsapp:'+919833300011', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Security Officer', company:'SecureOps', min:16000, max:22000, type:'Full-Time', location:'Pune', tags:['Security','Night'], phone:'+919822255566', whatsapp:'+919822255566', owner:'seed' },
-        { id: crypto.randomUUID(), title:'Chemistry Lab Assistant', company:'BioChem Pvt', min:22000, max:30000, type:'Contract', location:'Pune', tags:['Chemistry','Lab'], phone:'+919811199988', whatsapp:'+919811199988', owner:'seed' },
-      ];
-      LS.write('jobs', seed);
-    }
-
-    // Rendering
-    function renderJobs(){
-      const grid = $('#jobsGrid');
-      const term = $('#searchInput').value.trim().toLowerCase();
-      const activeFilter = $('.chip.active')?.dataset.filter || 'all';
-
-      const jobs = LS.read('jobs', []);
-      grid.innerHTML = '';
-
-      jobs
-        .filter(j=>{
-          const hit = (j.title + ' ' + j.company + ' ' + (j.tags||[]).join(' ')).toLowerCase().includes(term);
-          const typeOk = (activeFilter==='all' || j.type===activeFilter);
-          return hit && typeOk;
-        })
-        .forEach((job, idx)=>{
-          const el = document.createElement('article');
-          el.className = 'card job';
-          el.style.animationDelay = (idx * 40)+'ms';
-          el.setAttribute('aria-label', job.title + ' at ' + job.company);
-          el.innerHTML = `
-            <div class="logo" aria-hidden="true">${job.company.substring(0,2).toUpperCase()}</div>
-            <div style="flex:1">
-              <h4>${job.title} <span class="badge" title="Job Type">${job.type}</span></h4>
-              <div class="subtle">${job.company} • ${job.location}</div>
-              <div class="meta">
-                <span class="salary">₹${job.min.toLocaleString()} - ₹${job.max.toLocaleString()}</span>
-                ${(job.tags||[]).map(t=>`<span class="badge">${t}</span>`).join('')}
-              </div>
-              <div class="row">
-                <a class="btn" href="tel:${job.phone}" aria-label="Call HR"><i class="fas fa-phone"></i> Call</a>
-                <a class="btn" target="_blank" rel="noopener" href="https://wa.me/${job.whatsapp.replace(/[^0-9]/g,'')}" aria-label="WhatsApp HR"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                <button class="btn primary" data-apply="${job.id}"><i class="fas fa-paper-plane"></i> Apply</button>
-              </div>
-            </div>
-          `;
-          grid.appendChild(el);
+        menuItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const pageId = this.getAttribute('data-page');
+                if (pageId) showPage(pageId);
+            });
         });
 
-      if (!grid.children.length){
-        const empty = document.createElement('div');
-        empty.className = 'card pad';
-        empty.innerHTML = `<div style="text-align:center;padding:20px"><i class="fas fa-search" style="font-size:2rem;margin-bottom:10px;opacity:0.5"></i><p>No jobs match your search.</p></div>`;
-        grid.appendChild(empty);
-      }
-    }
-
-    function renderApplications(){
-      const body = $('#applicationsBody');
-      const apps = LS.read('applications', []);
-      const jobsById = Object.fromEntries(LS.read('jobs', []).map(j=>[j.id, j]));
-      body.innerHTML = '';
-      apps.forEach(app=>{
-        const job = jobsById[app.jobId];
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${job? job.title : '—'}</td>
-          <td>${app.name}</td>
-          <td>
-            <div>${app.email}</div>
-            <div class="subtle">${app.phone}</div>
-          </td>
-          <td>${app.message || ''}</td>
-          <td>
-            <select data-app="${app.id}" class="input" style="padding:6px 8px">
-              <option ${app.status==='New'?'selected':''}>New</option>
-              <option ${app.status==='Reviewed'?'selected':''}>Reviewed</option>
-              <option ${app.status==='Shortlisted'?'selected':''}>Shortlisted</option>
-              <option ${app.status==='Rejected'?'selected':''}>Rejected</option>
-            </select>
-          </td>
-        `;
-        body.appendChild(tr);
-      });
-      if (!apps.length){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="5" style="text-align:center;padding:20px" class="subtle"><i class="fas fa-inbox" style="font-size:1.5rem;margin-bottom:10px;display:block;opacity:0.5"></i>No applications yet.</td>`;
-        body.appendChild(tr);
-      }
-    }
-
-    // Navigation / Sections
-    function showSection(name){
-      const sections = ['Home','NewJob','Applications'];
-      sections.forEach(s => (s===name) ? show($('#section'+s)) : hide($('#section'+s)) );
-
-      // Stepper reset when entering NewJob
-      if (name==='NewJob'){ setStep(1); }
-    }
-
-    // Stepper
-    let currentStep = 1;
-    function setStep(n){
-      currentStep = Math.max(1, Math.min(3, n));
-      $$('.step').forEach(el => el.classList.toggle('active', Number(el.dataset.step)===currentStep));
-      $$('[data-step-panel]').forEach(p => p.hidden = Number(p.dataset.stepPanel)!==currentStep);
-      $('#btnPrev').disabled = currentStep===1;
-      $('#btnNext').hidden = currentStep===3;
-      $('#btnSubmit').hidden = currentStep!==3;
-    }
-
-    // Apply modal
-    function openApply(jobId){
-      $('#applyJobId').value = jobId;
-      show($('#applyOverlay'));
-    }
-
-    // Event Listeners
-    function bindEvents(){
-      // Menu
-      $('#btnHome').addEventListener('click', ()=> showSection('Home'));
-      $('#btnNewJob').addEventListener('click', ()=>{
-        if (!currentUser){ toast('Please login as HR to post jobs.', 'warning'); return openLogin(); }
-        showSection('NewJob');
-      });
-      $('#btnApplications').addEventListener('click', ()=>{
-        if (!currentUser){ toast('Please login as HR to view applications.', 'warning'); return openLogin(); }
-        showSection('Applications'); renderApplications();
-      });
-
-      // Auth actions
-      $('#btnLogin').addEventListener('click', openLogin);
-      $('#btnSignup').addEventListener('click', openSignup);
-      $('#btnLogout').addEventListener('click', ()=>{
-        localStorage.removeItem('currentHrUsername');
-        loadAuth();
-        toast('Logged out successfully');
-      });
-
-      // Search/filter
-      $('#searchInput').addEventListener('input', renderJobs);
-      $$('.chip').forEach(chip=>{
-        chip.addEventListener('click', ()=>{
-          $$('.chip').forEach(c=>{ c.classList.remove('active'); c.setAttribute('aria-pressed','false'); });
-          chip.classList.add('active'); chip.setAttribute('aria-pressed','true');
-          renderJobs();
+        // Modal functionality
+        const editModal = document.getElementById('editModal');
+        const modalClose = document.getElementById('modalClose');
+        modalClose.addEventListener('click', () => editModal.classList.remove('active'));
+        window.addEventListener('click', (e) => {
+            if (e.target === editModal) editModal.classList.remove('active');
         });
-      });
 
-      // Grid Apply buttons (event delegation after render)
-      $('#jobsGrid').addEventListener('click', (e)=>{
-        const btn = e.target.closest('button[data-apply]');
-        if (btn){
-          openApply(btn.getAttribute('data-apply'));
+        // Placeholder functions for other operations
+        async function loadPromptsTable() {
+            // Implementation similar to loadTemplatesTable
         }
-      });
 
-      // Apply modal close
-      $('#closeApply').addEventListener('click', ()=> hide($('#applyOverlay')));
-      $('#applyOverlay').addEventListener('click', (e)=>{ if (e.target.id==='applyOverlay') hide($('#applyOverlay')); });
-
-      // Apply form submit
-      $('#applyForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const jobId = $('#applyJobId').value;
-        const name = $('#candName').value.trim();
-        const email = $('#candEmail').value.trim();
-        const phone = $('#candPhone').value.trim();
-        const resume = $('#candResume').value.trim();
-        const message = $('#candMessage').value.trim();
-
-        if (!name || !email || !phone){ toast('Please fill required fields', 'error'); return; }
-
-        LS.push('applications', { id: crypto.randomUUID(), jobId, name, email, phone, resume, message, status:'New', createdAt: Date.now() });
-        hide($('#applyOverlay'));
-        toast('Application submitted successfully');
-      });
-
-      // Applications status change
-      $('#applicationsBody').addEventListener('change', (e)=>{
-        const sel = e.target.closest('select[data-app]'); if (!sel) return;
-        const id = sel.getAttribute('data-app');
-        const apps = LS.read('applications', []);
-        const idx = apps.findIndex(a=>a.id===id);
-        if (idx>-1){ apps[idx].status = sel.value; LS.write('applications', apps); toast('Status updated'); }
-      });
-
-      // Stepper
-      $('#btnPrev').addEventListener('click', ()=> setStep(currentStep-1));
-      $('#btnNext').addEventListener('click', ()=>{
-        if (!validateStep(currentStep)) return;
-        setStep(currentStep+1);
-      });
-
-      // Job form submit
-      $('#jobForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        if (!validateStep(3)) return;
-
-        const job = collectJobFromForm();
-        LS.push('jobs', job);
-        toast('Job posting saved successfully');
-        e.target.reset();
-        setStep(1);
-        showSection('Home');
-        renderJobs();
-      });
-
-      // Auth dialogs
-      $('#closeLogin').addEventListener('click', ()=> hide($('#loginOverlay')));
-      $('#closeSignup').addEventListener('click', ()=> hide($('#signupOverlay')));
-      $('#gotoSignup').addEventListener('click', ()=> { hide($('#loginOverlay')); openSignup(); });
-      $('#gotoLogin').addEventListener('click', ()=> { hide($('#signupOverlay')); openLogin(); });
-
-      // Login submit
-      $('#loginForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const u = $('#loginUsername').value.trim();
-        const p = $('#loginPassword').value;
-
-        const users = LS.read('hrUsers', []);
-        const user = users.find(x=> x.username===u && x.password===p);
-        if (!user){ toast('Invalid credentials', 'error'); return; }
-        localStorage.setItem('currentHrUsername', u);
-        hide($('#loginOverlay'));
-        loadAuth();
-        toast('Welcome, '+u);
-      });
-
-      // Signup submit
-      $('#signupForm').addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const fullName = $('#fullName').value.trim();
-        const email = $('#email').value.trim();
-        const mobile = $('#mobile').value.trim();
-        const username = $('#username').value.trim();
-        const password = $('#password').value;
-        const confirmPassword = $('#confirmPassword').value;
-        const position = $('#position').value;
-        const company = $('#company').value.trim();
-        const companyAddress = $('#companyAddressReg').value.trim();
-
-        if (!fullName || !email || !mobile || !username || !password || !confirmPassword || !position || !company || !companyAddress){
-          toast('Please fill all required fields', 'error'); return;
+        async function loadUsersTable() {
+            // Implementation similar to loadTemplatesTable
         }
-        if (password !== confirmPassword){ toast('Passwords do not match', 'error'); return; }
 
-        const users = LS.read('hrUsers', []);
-        if (users.some(u=>u.username===username)){ toast('Username already exists', 'error'); return; }
-
-        users.push({ fullName, email, mobile, username, password, position, company, companyAddress });
-        LS.write('hrUsers', users);
-
-        hide($('#signupOverlay'));
-        openLogin();
-        toast('Registration successful. Please login.');
-      });
-    }
-
-    function openLogin(){ show($('#loginOverlay')); }
-    function openSignup(){ show($('#signupOverlay')); }
-
-    function validateStep(step){
-      // Simple required check by step
-      const panel = document.querySelector('[data-step-panel="'+step+'"]');
-      const required = $$('input[required], select[required], textarea[required]', panel);
-      for (const el of required){
-        if ((el.type==='checkbox' && !el.checked) || (!el.value || el.value.trim()==='')){
-          el.focus(); el.scrollIntoView({behavior:'smooth', block:'center'});
-          toast('Please complete required fields', 'error');
-          return false;
+        function editTemplate(id) {
+            alert(`Edit template ${id} - Implementation needed`);
         }
-      }
-      return true;
-    }
 
-    function collectJobFromForm(){
-      const step1 = {
-        title: $('#jobTitle').value.trim(),
-        openings: Number($('#openings').value),
-        min: Number($('#minSalary').value),
-        max: Number($('#maxSalary').value),
-        shifts: $('#shifts').value.trim(),
-        type: $('#jobType').value,
-        facility: $('#facility').value.trim(),
-        applicationCharges: $('#applicationCharges').value
-      };
-      const step2 = {
-        education: $('#education').value.trim(),
-        courseName: $('#courseName').value.trim(),
-        experience: $('#experience').value.trim(),
-        gender: $('#gender').value,
-        callNumber: $('#callNumber').value.trim(),
-        whatsApp: $('#whatsApp').value.trim(),
-        hrEmail: $('#hrEmail').value.trim()
-      };
-      const step3 = {
-        companyType: (document.querySelector('input[name="companyType"]:checked')||{}).value || 'Company',
-        companyName: $('#companyName').value.trim(),
-        companyAddress: $('#companyAddress').value.trim(),
-        companySize: $('#companySize').value.trim(),
-        busRoute: $('#busRoute').value.trim(),
-        area: $('#area').value,
-        village: $('#village').value.trim()
-      };
+        function deleteTemplate(id) {
+            if (confirm('Are you sure you want to delete this template?')) {
+                db.collection('resume_templates').doc(id).delete()
+                    .then(() => {
+                        alert('Template deleted successfully!');
+                        loadTemplatesTable();
+                        loadDashboardData();
+                    })
+                    .catch(error => {
+                        console.error('Error deleting template:', error);
+                        alert('Error deleting template. Please try again.');
+                    });
+            }
+        }
 
-      return {
-        id: crypto.randomUUID(),
-        title: step1.title,
-        company: step3.companyName,
-        min: step1.min,
-        max: step1.max,
-        type: step1.type,
-        location: step3.area || '—',
-        tags: buildTags(step1, step2),
-        phone: step2.callNumber,
-        whatsapp: step2.whatsApp,
-        owner: currentUser?.username || 'unknown',
-        meta: { step1, step2, step3, createdAt: Date.now() }
-      };
-    }
+        // Similar edit/delete functions for jobs, prompts, users...
 
-    function buildTags(s1, s2){
-      const tags = [];
-      if (s1.shifts) tags.push(s1.shifts);
-      if (s1.facility) tags.push(s1.facility);
-      if (s2.education) tags.push(s2.education);
-      if (s2.experience) tags.push(s2.experience);
-      return tags.slice(0,4);
-    }
+        // Settings functionality
+        document.getElementById('saveGeneralSettings').addEventListener('click', function() {
+            alert('Settings saved successfully!');
+        });
 
-    // Init
-    (function init(){
-      ensureSeedJobs();
-      bindEvents();
-      loadAuth();
-      renderJobs();
+        document.getElementById('updateAdminAccount').addEventListener('click', function() {
+            alert('Admin account updated successfully!');
+        });
 
-      // Default section
-      showSection('Home');
-    })();
-  </script>
+        // Initialize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768 && isSidebarOpen) {
+                toggleSidebar();
+            }
+        });
+
+        // Particle background animation
+        document.addEventListener('DOMContentLoaded', function() {
+            const particlesContainer = document.querySelector('.particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 5 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = `rgba(${Math.random() * 100 + 100}, ${Math.random() * 100 + 100}, 255, ${Math.random() * 0.5 + 0.2})`;
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.boxShadow = '0 0 10px rgba(45, 91, 255, 0.5)';
+                
+                particlesContainer.appendChild(particle);
+                animateParticle(particle);
+            }
+            
+            function animateParticle(particle) {
+                let x = parseFloat(particle.style.left);
+                let y = parseFloat(particle.style.top);
+                let xSpeed = (Math.random() - 0.5) * 0.5;
+                let ySpeed = (Math.random() - 0.5) * 0.5;
+                
+                function move() {
+                    x += xSpeed;
+                    y += ySpeed;
+                    if (x < 0 || x > 100) xSpeed *= -1;
+                    if (y < 0 || y > 100) ySpeed *= -1;
+                    particle.style.left = x + 'vw';
+                    particle.style.top = y + 'vh';
+                    requestAnimationFrame(move);
+                }
+                move();
+            }
+        });
+    </script>
 </body>
 </html>
